@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.account.persist.mapper.CreditMapper">
+
+    <insert id="addCreditList">
+        insert into credit
+        (createuser,
+        updateuser,
+        id,
+        card_id,
+        transaction_date,
+        bookkeeping_date,
+        transaction_desc,
+        balance_currency,
+        balance_money,
+        card_type_id,
+        card_type_name,
+        consumption_type,
+        consume_id,
+        consume_name,
+        demoarea,
+        recordid)
+        <foreach collection="credits" item="credit" index="index" separator="union">
+            select
+            #{credit.createuser,jdbcType=VARCHAR},
+            #{credit.updateuser,jdbcType=VARCHAR},
+            #{credit.id,jdbcType=VARCHAR},
+            #{credit.cardId,jdbcType=VARCHAR},
+            #{credit.transactionDate,jdbcType=DATE},
+            #{credit.bookKeepingDate,jdbcType=DATE},
+            #{credit.transactionDesc,jdbcType=VARCHAR},
+            #{credit.balanceCurrency,jdbcType=VARCHAR},
+            #{credit.balanceMoney,jdbcType=NUMERIC},
+            #{credit.cardTypeId,jdbcType=NUMERIC},
+            #{credit.cardTypeName,jdbcType=VARCHAR},
+            #{credit.consumptionType,jdbcType=NUMERIC},
+            #{credit.consumeID,jdbcType=VARCHAR},
+            #{credit.consumeName,jdbcType=VARCHAR},
+            #{credit.demoArea,jdbcType=VARCHAR},
+            #{credit.recordID,jdbcType=VARCHAR}
+            from dual
+        </foreach>
+    </insert>
+
+    <update id="updateCredit" parameterType="com.account.persist.model.Credit">
+        update credit
+        set version = version+1,
+        <if test="updateUser != null">
+            updateuser = #{updateUser,jdbcType=VARCHAR},
+        </if>
+        <if test="consumptionType != null">
+            consumption_type = #{consumptionType,jdbcType=NUMERIC},
+        </if>
+        <if test="consumeID != null">
+            consume_id = #{consumeID,jdbcType=NUMERIC},
+        </if>
+        <if test="consumeName != null">
+            consume_name = #{consumeName,jdbcType=NUMERIC},
+        </if>
+        <if test="demoArea != null">
+            demoarea = #{demoArea,jdbcType=VARCHAR},
+        </if>
+        updatetime = current_timestamp
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="deleteCredit" parameterType="java.lang.String">
+        delete from credit where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <resultMap type="com.account.persist.model.Credit" id="baseCreditResultMap">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="card_id" property="cardId" jdbcType="VARCHAR"/>
+        <result column="transaction_date" property="transactionDate" jdbcType="DATE"/>
+        <result column="bookkeeping_date" property="bookKeepingDate" jdbcType="DATE"/>
+        <result column="transaction_desc" property="transactionDesc" jdbcType="VARCHAR"/>
+        <result column="balance_currency" property="balanceCurrency" jdbcType="VARCHAR"/>
+        <result column="balance_money" property="balanceMoney" jdbcType="NUMERIC"/>
+        <result column="card_type_id" property="cardTypeId" jdbcType="NUMERIC"/>
+        <result column="card_type_name" property="cardTypeName" jdbcType="VARCHAR"/>
+        <result column="consumption_type" property="consumptionType" jdbcType="NUMERIC"/>
+        <result column="consume_id" property="consumeID" jdbcType="VARCHAR"/>
+        <result column="consume_name" property="consumeName" jdbcType="VARCHAR"/>
+        <result column="demoarea" property="demoArea" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="getCredits" resultMap="baseCreditResultMap">
+        select * from (
+        select id, card_id, transaction_date, bookkeeping_date, transaction_desc, balance_currency,
+        balance_money, card_type_id, card_type_name, consumption_type, consume_id, consume_name, demoarea
+        from credit where 1 = 1
+        <if test="credit != null">
+            <if test="credit.transactionDateStart != null">
+                and transaction_date &gt;= #{credit.transactionDateStart,jdbcType=DATE}
+            </if>
+            <if test="credit.transactionDateEnd != null">
+                and transaction_date &lt;= #{credit.transactionDateEnd,jdbcType=DATE}
+            </if>
+            <if test="credit.consumptionType != null">
+                and consumption_type = #{credit.consumptionType,jdbcType=NUMERIC}
+            </if>
+            <if test="credit.cardTypeName != null">
+                and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.consumes != null">
+                and consume_id in
+                <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
+                    #{consumeID,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="credit.consumeName != null">
+                and consume_name = #{credit.consumeName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.demoArea != null">
+                and (demoarea like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%'
+                or transaction_desc like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%' )
+            </if>
+            <if test="credit.weekName != null">
+                and (dayofweek(transaction_date)-1) = #{credit.weekName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.year != null">
+                and year(transaction_date) = #{credit.year,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.month != null">
+                and month(transaction_date) = #{credit.month,jdbcType=VARCHAR}
+            </if>
+        </if>
+        order by transaction_date desc
+        ) t limit #{page.recordBegin,jdbcType=NUMERIC}, #{page.pageSize,jdbcType=NUMERIC}
+    </select>
+
+    <select id="countCredit" resultType="java.lang.Integer">
+        select count(id) from credit
+        where 1 = 1
+        <if test="credit != null">
+            <if test="credit.transactionDateStart != null">
+                and transaction_date &gt;= #{credit.transactionDateStart,jdbcType=DATE}
+            </if>
+            <if test="credit.transactionDateEnd != null">
+                and transaction_date &lt;= #{credit.transactionDateEnd,jdbcType=DATE}
+            </if>
+            <if test="credit.consumptionType != null">
+                and consumption_type = #{credit.consumptionType,jdbcType=NUMERIC}
+            </if>
+            <if test="credit.cardTypeName != null">
+                and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.consumes != null">
+                and consume_id in
+                <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
+                    #{consumeID,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="credit.consumeName != null">
+                and consume_name = #{credit.consumeName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.demoArea != null">
+                and (demoarea like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%'
+                or transaction_desc like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%' )
+            </if>
+            <if test="credit.weekName != null">
+                and (dayofweek(transaction_date) - 1) = #{credit.weekName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.year != null">
+                and year(transaction_date) = #{credit.year,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.month != null">
+                and month(transaction_date) = #{credit.month,jdbcType=VARCHAR}
+            </if>
+        </if>
+    </select>
+
+    <select id="consumeReport" resultType="com.account.persist.model.KeyValue">
+        select round(balance_money) 'value',
+        case when (isnull(consume_name)=1 || length(trim(consume_name)) =0) then 'unkown' else consume_name end 'key'
+        from (select sum(balance_money) balance_money, consume_id, consume_name
+        from credit
+        where 1 = 1 and consumption_type = 1
+        <if test="credit != null">
+            <if test="credit.transactionDateStart != null">
+                and transaction_date &gt;= #{credit.transactionDateStart,jdbcType=DATE}
+            </if>
+            <if test="credit.transactionDateEnd != null">
+                and transaction_date &lt;= #{credit.transactionDateEnd,jdbcType=DATE}
+            </if>
+            <if test="credit.cardTypeName != null">
+                and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.consumes != null">
+                and consume_id in
+                <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
+                    #{consumeID,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="credit.demoArea != null">
+                and (demoarea like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%'
+                or transaction_desc like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%' )
+            </if>
+        </if>
+        group by consume_id, consume_name) t
+        order by consume_id
+    </select>
+
+    <select id="weekConsumeReport" resultType="com.account.persist.model.KeyValue">
+        select round(sum(balance_money)) 'value', transaction_date 'key' from (
+        select dayofweek(transaction_date)-1 transaction_date, balance_money
+        from credit
+        where consumption_type = 1
+        <if test="credit != null">
+            <if test="credit.transactionDateStart != null">
+                and transaction_date &gt;= #{credit.transactionDateStart,jdbcType=DATE}
+            </if>
+            <if test="credit.transactionDateEnd != null">
+                and transaction_date &lt;= #{credit.transactionDateEnd,jdbcType=DATE}
+            </if>
+            <if test="credit.cardTypeName != null">
+                and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.consumes != null">
+                and consume_id in
+                <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
+                    #{consumeID,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="credit.demoArea != null">
+                and (demoarea like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%'
+                or transaction_desc like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%' )
+            </if>
+        </if>
+        ) view1
+        group by transaction_date
+        order by transaction_date
+    </select>
+
+    <select id="monthConsumeReport" resultType="com.account.persist.model.KeyValue">
+        select round(balance_money) 'value',
+        case when cmonth = 1 then 'Janunary'
+        when cmonth = 2 then 'February'
+        when cmonth = 3 then 'March'
+        when cmonth = 4 then 'April'
+        when cmonth = 5 then 'May'
+        when cmonth = 6 then 'June'
+        when cmonth = 7 then 'July'
+        when cmonth = 8 then 'August'
+        when cmonth = 9 then 'September'
+        when cmonth = 10 then 'October'
+        when cmonth = 11 then 'November'
+        when cmonth = 12 then 'December' else cmonth end 'key'
+        from (select sum(balance_money) balance_money,cmonth
+        from (select balance_money, month(transaction_date) cmonth from credit
+        where 1 = 1 and consumption_type = 1
+        <if test="credit != null">
+            <if test="credit.year != null">
+                and year(transaction_date) = #{credit.year,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.cardTypeName != null">
+                and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
+            </if>
+            <if test="credit.consumes != null">
+                and consume_id in
+                <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
+                    #{consumeID,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="credit.demoArea != null">
+                and (demoarea like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%'
+                or transaction_desc like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%' )
+            </if>
+        </if>
+        ) t1 group by cmonth) t2 order by cmonth
+    </select>
+</mapper>

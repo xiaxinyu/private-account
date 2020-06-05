@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.account.persist.mapper.EndowmentMapper">
+	  
+	<insert id="addEndowment" parameterType="com.account.persist.model.Endowment">
+		insert into endowment
+  		(version,createuser,updateuser,id,unit_no,unit_name,time,pay_base,personal_pay,unit_pay,total_pay,personal_reserved,demoarea)
+		values
+  		(#{version,jdbcType=NUMERIC},
+  		 #{createuser,jdbcType=VARCHAR}, 
+	  	 #{updateuser,jdbcType=VARCHAR}, 
+	  	 #{id,jdbcType=VARCHAR}, 
+  		 #{unitNo,jdbcType=VARCHAR}, 
+  		 #{unitName,jdbcType=VARCHAR}, 
+  		 #{time,jdbcType=VARCHAR}, 
+  		 #{payBase,jdbcType=NUMERIC}, 
+  		 #{personalPay,jdbcType=NUMERIC}, 
+  		 #{unitPay,jdbcType=NUMERIC},  
+  		 #{totalPay,jdbcType=NUMERIC},  
+  		 #{personalReserved,jdbcType=NUMERIC},  
+  		 #{demoArea,jdbcType=VARCHAR})		
+	</insert>
+	 
+ 	<update id="updateEndowment" parameterType="com.account.persist.model.Endowment">
+		update endowment
+		set version = version+1,
+		<if test="updateuser != null">
+			updateuser = #{updateuser,jdbcType=VARCHAR},
+		</if>
+		<if test="unitNo != null">
+			unit_no = #{unitNo,jdbcType=VARCHAR},
+		</if>
+		<if test="unitName != null">
+			unit_name = #{unitName,jdbcType=VARCHAR},
+		</if>
+		<if test="time != null">
+			time = #{time,jdbcType=VARCHAR},
+		</if>
+		<if test="payBase != null">
+			pay_base = #{payBase,jdbcType=NUMERIC},
+		</if>
+		 <if test="personalPay != null">
+			personal_pay = #{personalPay,jdbcType=NUMERIC},
+		</if>
+		 <if test="unitPay != null">
+			unit_pay = #{unitPay,jdbcType=NUMERIC},
+		</if>
+		 <if test="totalPay != null">
+			total_pay = #{totalPay,jdbcType=NUMERIC},
+		</if>
+		<if test="personalReserved != null">
+			personal_reserved = #{personalReserved,jdbcType=NUMERIC},
+		</if>
+		<if test="demoArea != null">
+			demoarea = #{demoArea,jdbcType=VARCHAR},
+		</if>
+		updatetime = SYSDATE
+		where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <delete id="deleteEndowment" parameterType="java.lang.String">
+    	delete from endowment where id = #{id,jdbcType=VARCHAR} 
+    </delete>
+    
+    <resultMap type="com.account.persist.model.Endowment" id="baseEndowmentsResultMap">
+    	<id column="id" property="id" jdbcType="VARCHAR"/>
+	    <result column="unit_no" property="unitNo" jdbcType="VARCHAR"/>
+	    <result column="unit_name" property="unitName" jdbcType="VARCHAR"/>
+	    <result column="time" property="time" jdbcType="VARCHAR"/>
+	    <result column="pay_base" property="payBase" jdbcType="NUMERIC" />
+	    <result column="personal_pay" property="personalPay" jdbcType="NUMERIC"/>
+	    <result column="unit_pay" property="unitPay" jdbcType="NUMERIC"/>
+	    <result column="total_pay" property="totalPay" jdbcType="NUMERIC"/>
+	    <result column="personal_reserved" property="personalReserved" jdbcType="NUMERIC"/>
+	    <result column="demoarea" property="demoArea" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+    <select id="getEndowments" resultMap="baseEndowmentsResultMap">
+    	select b.*
+		  from (select a.*, rownum rn
+		          from (select id,
+						       unit_no,
+						       unit_name,
+						       time,
+						       pay_base,
+						       personal_pay,
+						       unit_pay,
+						       total_pay,
+						       personal_reserved,
+						       demoarea
+						  from endowment
+		                  where 1 = 1
+		                  <if test="endowment != null">
+			                 	                  
+		                  </if>
+		                 order by time desc) a
+		         where rownum &lt;= #{page.recordEnd,jdbcType=NUMERIC}) b
+		 where b.rn &gt; #{page.recordBegin,jdbcType=NUMERIC}
+    </select>
+    
+    <select id="countEndowments" resultType="java.lang.Integer">
+    	select count(id) from endowment
+        where 1 = 1
+        <if test="endowment != null">
+			
+		</if>
+    </select>
+</mapper>

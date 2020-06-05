@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.account.persist.mapper.CreditRecordMapper">
+	<insert id="addCreditRecord" parameterType="com.account.persist.model.CreditRecord">
+		insert into credit_record
+	  	(createuser,
+		 updateuser,
+		 id,
+		 bill_data, 
+		 bill_file_name, 
+		 bill_items_number)
+		values
+	  	(#{createuser,jdbcType=VARCHAR}, 
+	  	 #{updateuser,jdbcType=VARCHAR}, 
+	  	 #{id,jdbcType=VARCHAR}, 
+	  	 #{billData,jdbcType=CLOB}, 
+	  	 #{billFileName,jdbcType=VARCHAR}, 
+	  	 #{billItemsNumber,jdbcType=NUMERIC})
+	</insert>
+</mapper>

@@ -1,0 +1,62 @@
+# Mybatis
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml  #注意：一定要对应mapper映射xml文件的所在路径
+  # 实体扫描，多个package用逗号或者分号分隔
+  type-aliases-package: com.account.persist.model.*
+  configuration:
+    # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      idType: AUTO
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+
+jasypt:
+  encryptor:
+    password: pirvate@account
+
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://127.0.0.1:3306/private-account?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=UTC
+    username: ENC(kBCFI11R5SeUsa7Tw/OgsIcafTWANzTRj6mmQhmvtQZ2gxJMToGVZB8tOYcPrL/O)
+    password: ENC(brD/WAgIR1CMKerLN6CUFT4ARsu2ndhvVvHq7ZwRH9OVAZCBeu/S9i+Xb9tI0qAe)
+    hikari:
+      minimum-idle: 3
+      idle-timeout: 600000
+      maximum-pool-size: 15
+      auto-commit: true
+      pool-name: Private-Account-HikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+  http:
+    encoding:
+      force: true
+      charset: UTF-8
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 60MB
+
+account:
+  des-sign-key: 45a8c1035b35c7d56882189d5349cd9c
+
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    maxHttpPostSize: -1
+    maxHttpHeaderSize: 65536
+
+ribbon:
+  ConnectTimeout: 10000
+  ReadTimeout: 8000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health # 暴露所有端口
+    enabled-by-default: true # 启用所有端口

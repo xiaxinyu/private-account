@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.account.persist.mapper.HouseRentMapper">
+    <resultMap type="com.account.persist.model.HouseRent" id="baseSalaryResultMap">
+    	<id column="id" property="id" jdbcType="VARCHAR"/>
+	    <result column="card_id" property="cardId" jdbcType="VARCHAR"/>
+	    <result column="transaction_date" property="transactionDate" jdbcType="DATE"/>
+	    <result column="transaction_desc" property="transactionDesc" jdbcType="VARCHAR" />
+	    <result column="balance_currency" property="balanceCurrency" jdbcType="VARCHAR"/>
+	    <result column="balance_money" property="balanceMoney" jdbcType="NUMERIC"/>
+	    <result column="card_type_id" property="cardTypeId" jdbcType="NUMERIC"/>
+	    <result column="card_type_name" property="cardTypeName" jdbcType="VARCHAR"/>
+	    <result column="demoarea" property="demoArea" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+    <select id="getHouseRents" resultMap="baseSalaryResultMap">
+    	select b.*
+		  from (select a.*, rownum rn
+		          from (select id,
+		                       card_id,
+		                       transaction_date,
+		                       transaction_desc,
+		                       balance_currency,
+		                       balance_money,
+		                       card_type_id,
+		                       card_type_name,
+		                       demoarea
+		                  from house_rent
+		                  where 1 = 1
+		                  <if test="houseRent != null">
+			                  <if test="houseRent.transactionDateStart != null">
+			                  	and transaction_date &gt;= #{houseRent.transactionDateStart,jdbcType=DATE} 
+			                  </if>
+			                  <if test="houseRent.transactionDateEnd != null">
+			                  	and transaction_date &lt;= #{houseRent.transactionDateEnd,jdbcType=DATE}
+			                  </if>
+			                  <if test="houseRent.cardTypeName != null">
+			                  	and card_type_name = #{houseRent.cardTypeName,jdbcType=VARCHAR}
+			                  </if>
+			                  <if test="houseRent.demoArea != null">
+			                  	and (demoarea like '%'||#{houseRent.demoArea,jdbcType=VARCHAR}||'%'
+								or  transaction_desc like '%'||#{houseRent.demoArea,jdbcType=VARCHAR}||'%' )
+			                  </if>
+			                  <if test="houseRent.year != null">
+			                  	and trim(to_char(transaction_date, 'yyyy')) = #{houseRent.year,jdbcType=VARCHAR}
+			                  </if>
+		                  </if>
+		                 order by transaction_date desc) a
+		         where rownum &lt;= #{page.recordEnd,jdbcType=NUMERIC}) b
+		 where b.rn &gt; #{page.recordBegin,jdbcType=NUMERIC}
+    </select>
+    
+    <select id="countHouseRent" resultType="java.lang.Integer">
+    	select count(id) from house_rent
+        where 1 = 1
+        <if test="houseRent != null">
+			<if test="houseRent.transactionDateStart != null">
+				and transaction_date &gt;= #{houseRent.transactionDateStart,jdbcType=DATE} 
+			</if>
+			<if test="houseRent.transactionDateEnd != null">
+				and transaction_date &lt;= #{houseRent.transactionDateEnd,jdbcType=DATE}
+			</if>
+			<if test="houseRent.cardTypeName != null">
+				and card_type_name = #{houseRent.cardTypeName,jdbcType=VARCHAR}
+			</if>
+			<if test="houseRent.demoArea != null">
+             	and (demoarea like '%'||#{houseRent.demoArea,jdbcType=VARCHAR}||'%'
+					or  transaction_desc like '%'||#{houseRent.demoArea,jdbcType=VARCHAR}||'%' )
+           	</if>
+            <if test="houseRent.year != null">
+            	and trim(to_char(transaction_date, 'yyyy')) = #{houseRent.year,jdbcType=VARCHAR}
+            </if>
+		</if>
+    </select>
+</mapper>
