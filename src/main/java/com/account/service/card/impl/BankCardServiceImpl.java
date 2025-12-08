@@ -1,0 +1,25 @@
+package com.account.service.card.impl;
+
+import com.account.persist.mapper.BankCardMapper;
+import com.account.persist.model.BankCard;
+import com.account.service.card.BankCardService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class BankCardServiceImpl extends ServiceImpl<BankCardMapper, BankCard> implements BankCardService {
+    @Override
+    public List<BankCard> listByBankAndType(String bankCode, String cardTypeCode) {
+        LambdaQueryWrapper<BankCard> qw = Wrappers.lambdaQuery();
+        qw.select(BankCard::getId, BankCard::getBankCode, BankCard::getCardTypeCode, BankCard::getCardNo, BankCard::getDeleted)
+          .eq(BankCard::getBankCode, bankCode)
+          .eq(BankCard::getCardTypeCode, cardTypeCode)
+          .eq(BankCard::getDeleted, 0)
+          .orderByAsc(BankCard::getCardNo);
+        return super.list(qw);
+    }
+}

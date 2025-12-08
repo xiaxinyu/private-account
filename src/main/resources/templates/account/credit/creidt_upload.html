@@ -68,9 +68,10 @@
         var type = $('#cmbCardType').combobox('getValue') || '';
         if(type !== 'deposit' && type !== 'credit'){ type = 'deposit'; }
         if(!bank){ $('#cmbCardNo').combobox('loadData', []); return; }
-        var list = credit_upload_datasource.getCards(bank,type);
-        $('#cmbCardNo').combobox('loadData', list);
-        $('#cmbCardNo').combobox('clear');
+        $.getJSON('/card/numbers',{bankCode:bank,cardTypeCode:type}, function(list){
+            $('#cmbCardNo').combobox('loadData', list);
+            $('#cmbCardNo').combobox('clear');
+        });
     }
 </script>
 </body>

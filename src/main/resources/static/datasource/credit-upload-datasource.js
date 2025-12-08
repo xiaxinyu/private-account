@@ -15,7 +15,7 @@ var credit_upload_datasource = {
         { id: 'CCB-D-002', text: 'CCB Deposit 002' }
       ],
       credit: [
-        { id: 'CCB-C-001', text: '6227080866603992' },
+        { id: 'CCB-C-001', text: 'xxx' },
         { id: 'CCB-C-002', text: 'CCB Credit 002' }
       ]
     },
