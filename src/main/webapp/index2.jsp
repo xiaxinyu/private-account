@@ -6,7 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Insert title here</title>
 <script type="text/javascript" src="<%=request.getContextPath()%>/scripts/credit.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/plugins/jquery/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%>/plugins/jquery-easyui-1.11.4/jquery.min.js"></script>
 </head>
 <body>
 	<div style="display: block; width: 100px; height:25px; border: 1px dotted;"></div>

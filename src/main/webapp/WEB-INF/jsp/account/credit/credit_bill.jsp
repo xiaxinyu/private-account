@@ -10,29 +10,31 @@
 		<div style="margin-top: 3px;">
 			<span class="item_intervel">
 	           	<label>Date</label>
-	           	<input id="dateStart" class="easyui-datebox" style="width: 100px;"  data-options="onSelect:searchCredits" phptag="phptag_home_m_1_1001"/>
+				<input id="dateStart" class="easyui-datebox" style="width: 100px;"
+					   phptag="phptag_home_m_1_1001"/>
 	           	~ 
-	           	<input id="dateEnd" class="easyui-datebox" style="width: 100px;" data-options="onSelect:searchCredits" />
+				<input id="dateEnd" class="easyui-datebox" style="width: 100px;"/>
 			</span>
 	          
 	        <span class="item_intervel">
 	           	<label>Type</label>
-				<input id="cmbConsumptionType" class="easyui-combobox" 
-					data-options="data:credit_datasource.consumptionType,valueField:'id',textField:'text',onSelect:searchCredits"
-					style="width: 100px;">
+				<input id="cmbConsumptionType" class="easyui-combobox"
+					   data-options="data:credit_datasource.consumptionType,valueField:'id',textField:'text'"
+					   style="width: 100px;">
 			</span>
 	                
 	        <span class="item_intervel">
 				<label>Card</label>
-				<input id="cmbCardTypes" class="easyui-combobox" 
-					data-options="data:credit_datasource.cardTypes,valueField:'id',textField:'text',onSelect:searchCredits"
-					style="width: 130px;">
+				<input id="cmbCardTypes" class="easyui-combobox"
+					   data-options="data:credit_datasource.cardTypes,valueField:'id',textField:'text'"
+					   style="width: 130px;">
 			</span>
 	
 	          <span class="item_intervel">
 	          	<label>Consume</label>
-	          	<select id="cmbConsume" class="easyui-combotree" data-options="data:consume_datasource,onChange:searchCredits" multiple 
-	          		style="width:200px;"></select>
+				<select id="cmbConsume" class="easyui-combotree"
+						data-options="data:consume_datasource" multiple
+						style="width:200px;"></select>
 	          </span>
 	          
 	          <span class="item_intervel">
@@ -113,6 +115,16 @@ $(function() {
 	});
 });
 
+$(function(){
+    $.parser.onComplete = function(){
+        $('#dateStart').datebox({onSelect:function(){searchCredits();}});
+        $('#dateEnd').datebox({onSelect:function(){searchCredits();}});
+        $('#cmbConsumptionType').combobox({onSelect:function(){searchCredits();}});
+        $('#cmbCardTypes').combobox({onSelect:function(){searchCredits();}});
+        $('#cmbConsume').combotree({onChange:function(){searchCredits();}});
+    };
+});
+
 function deleteCredit(){
 	var rowData = $(datagrid).datagrid("getSelected");
 	if(rowData != null){
@@ -138,13 +150,13 @@ function deleteCredit(){
 var fmt = {
 	consumptionType:function(value,row){
 	           if (value == 0) {
-		        return;
-		 }
+					return;
+				}
 		var consumptionTypes = credit_datasource.consumptionType;
 		for (var i = 0; i < consumptionTypes.length; i++) {
 			if (consumptionTypes[i].id == value) {
-		    	return consumptionTypes[i].text;
-		    }
+			return consumptionTypes[i].text;
+		}
 		}
 	},
 	consume:function(value,row){
@@ -190,7 +202,15 @@ function cancelEdit() {
 
 <script type="text/javascript">
 function searchCredits() {
-	//Transaction date
+    var dg = $(datagrid);
+    if (!dg.length) {
+        return;
+    }
+    var st = dg.data('datagrid');
+    if (!st || !st.options) {
+        return;
+    }
+    //Transaction date
 	var dateStart = $('#dateStart').datebox('getValue');
 	var dateEnd = $('#dateEnd').datebox('getValue');
 	if(dateStart!=null && dateStart!=""){
@@ -229,7 +249,7 @@ function searchCredits() {
 	}
 	//demo
 	var demoArea = $.trim($('#txtDemo').textbox('getValue'));
-	$(datagrid).datagrid('load',{'transactionDateStartStr':dateStart,'transactionDateEndStr':dateEnd,'consumptionType':consumptionType,'consumeID':consume,'cardTypeName':cardtype,'demoArea':demoArea,'weekName':''});
+    dg.datagrid('load',{'transactionDateStartStr':dateStart,'transactionDateEndStr':dateEnd,'consumptionType':consumptionType,'consumeID':consume,'cardTypeName':cardtype,'demoArea':demoArea,'weekName':''});
 }
 </script>
 

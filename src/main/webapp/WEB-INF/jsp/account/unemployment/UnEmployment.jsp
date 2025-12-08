@@ -2,7 +2,7 @@
 <%@ include file="/system/template/header.jsp"%>
 <script type="text/javascript" src="${BasePath}/scripts/unemployment.js"></script>
 <script type="text/javascript" src="${BasePath}/datasource/endowment-datasource.js"></script>
-<script type="text/javascript" src="${BasePath}/plugins/easyui/datagrid-groupview.js"></script>
+<script type="text/javascript" src="${BasePath}/plugins/jquery-easyui-1.11.4/datagrid-groupview.js"></script>
 
 <style type="text/css">
     #fm{margin:0;padding:10px 30px;}

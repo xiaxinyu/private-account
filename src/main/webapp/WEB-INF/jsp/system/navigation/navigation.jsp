@@ -50,8 +50,9 @@
 					frame[i].contentWindow.close();
 					frame[i].src = frame[i].src;
 				}
-				if ($.browser.msie) {//ie浏览器下
-					CollectGarbage();//释放内存
+				var isIE = !!window.document.documentMode;
+				if (isIE && window.CollectGarbage) {
+					CollectGarbage();
 				}
 			}
 		} catch (e) {

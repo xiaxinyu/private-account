@@ -1,13 +1,13 @@
 <html>
 <head>
     <title>== Bill Management List ==</title>
-    <script type="text/javascript" src="/plugins/jquery/jquery-2.1.4.min.js"></script>
-    <script type="text/javascript" src="/plugins/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="/scripts/app-plugin.js"></script>
     <script type="text/javascript" src="/scripts/date.js"></script>
     <script type="text/javascript" src="/plugins/echarts/echarts-2.2.7.js"></script>
-    <link rel="stylesheet" type="text/css" href="/plugins/easyui/themes/default/easyui.css">
-    <link rel="stylesheet" type="text/css" href="/plugins/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
     <script type="text/javascript" src="/scripts/credit.js"></script>
     <script type="text/javascript" src="/datasource/creidt-datasource.js"></script>
     <script type="text/javascript" src="/datasource/consume-datasource.js"></script>
@@ -18,30 +18,30 @@
     <div style="margin-top: 3px;">
 			<span class="item_intervel">
 	           	<label>Date</label>
-	           	<input id="dateStart" class="easyui-datebox" style="width: 100px;" data-options="onSelect:searchCredits"
+            <input id="dateStart" class="easyui-datebox" style="width: 100px;"
                        phptag="phptag_home_m_1_1001"/>
 	           	~ 
-	           	<input id="dateEnd" class="easyui-datebox" style="width: 100px;" data-options="onSelect:searchCredits"/>
+            <input id="dateEnd" class="easyui-datebox" style="width: 100px;"/>
 			</span>
 
         <span class="item_intervel">
 	           	<label>Type</label>
-				<input id="cmbConsumptionType" class="easyui-combobox"
-                       data-options="data:credit_datasource.consumptionType,valueField:'id',textField:'text',onSelect:searchCredits"
+                <input id="cmbConsumptionType" class="easyui-combobox"
+                       data-options="data:credit_datasource.consumptionType,valueField:'id',textField:'text'"
                        style="width: 100px;">
 			</span>
 
         <span class="item_intervel">
 				<label>Card</label>
-				<input id="cmbCardTypes" class="easyui-combobox"
-                       data-options="data:credit_datasource.cardTypes,valueField:'id',textField:'text',onSelect:searchCredits"
+                <input id="cmbCardTypes" class="easyui-combobox"
+                       data-options="data:credit_datasource.cardTypes,valueField:'id',textField:'text'"
                        style="width: 130px;">
 			</span>
 
         <span class="item_intervel">
 	          	<label>Consume</label>
-	          	<select id="cmbConsume" class="easyui-combotree"
-                        data-options="data:consume_datasource,onChange:searchCredits" multiple
+                <select id="cmbConsume" class="easyui-combotree"
+                        data-options="data:consume_datasource" multiple
                         style="width:200px;"></select>
 	          </span>
 
@@ -129,6 +129,16 @@ $(function() {
 	});
 });
 
+$(function(){
+    $.parser.onComplete = function(){
+        $('#dateStart').datebox({onSelect:function(){searchCredits();}});
+        $('#dateEnd').datebox({onSelect:function(){searchCredits();}});
+        $('#cmbConsumptionType').combobox({onSelect:function(){searchCredits();}});
+        $('#cmbCardTypes').combobox({onSelect:function(){searchCredits();}});
+        $('#cmbConsume').combotree({onChange:function(){searchCredits();}});
+    };
+});
+
 function deleteCredit(){
 	var rowData = $(datagrid).datagrid("getSelected");
 	if(rowData != null){
@@ -163,14 +173,30 @@ var fmt = {
 		    }
 		}
 	},
-	consume:function(value,row){
-		var consumeTarget = consume_operate.find(value);
-		if(consumeTarget != null){
-			return consumeTarget.text;
-		}
-		return "";
-	}
+    consume:function(value,row){
+        var consumeTarget = consume_operate.find(value);
+        if(consumeTarget){ return consumeTarget.text; }
+        return "";
+    }
 }
+
+var consume_operate = {
+    find: function(id){
+        if(!id){ return null; }
+        function loop(nodes){
+            for(var i=0;i<nodes.length;i++){
+                var n = nodes[i];
+                if(n.id === id){ return n; }
+                if(n.children){
+                    var r = loop(n.children);
+                    if(r){ return r; }
+                }
+            }
+            return null;
+        }
+        return loop(consume_datasource);
+    }
+};
 
 function updateCredit() {
 	var rowData = $(datagrid).datagrid('getSelected');
@@ -207,46 +233,54 @@ function cancelEdit() {
 
 <script type="text/javascript">
 function searchCredits() {
-	//Transaction date
-	var dateStart = $('#dateStart').datebox('getValue');
-	var dateEnd = $('#dateEnd').datebox('getValue');
-	if(dateStart!=null && dateStart!=""){
-		dateStart = $.trim(dateStart);    
-	}else{
-		dateStart = '';
-	}
-	if(dateEnd!=null && dateEnd != ""){
-		dateEnd = $.trim(dateEnd);    
-	}else{
-		dateEnd = '';
-	}
-	
-	//Type
-	var consumptionType = $('#cmbConsumptionType').combobox('getValue');
-	if(consumptionType!=null && consumptionType!="" && consumptionType != "0"){
-		consumptionType = $.trim(consumptionType);
-	}else{
-		consumptionType = '';
-	}
-	
-	//Card type
-	var cardtype = $('#cmbCardTypes').combobox('getValue');
-	if(cardtype!=null && cardtype!="" && cardtype != "0"){
-		cardtype = $.trim(cardtype);
-	}else{
-		cardtype = '';
-	}
-	
-	//Consume type
-	var consume = $('#cmbConsume').combotree('getValues');
-	if(consume!=null && consume!=""){
-		consume = $.trim(consume.join(','));
-	}else{
-		consume = '';
-	}
-	//demo
-	var demoArea = $.trim($('#txtDemo').textbox('getValue'));
-	$(datagrid).datagrid('load',{'transactionDateStartStr':dateStart,'transactionDateEndStr':dateEnd,'consumptionType':consumptionType,'consumeID':consume,'cardTypeName':cardtype,'demoArea':demoArea,'weekName':''});
+    var dg = $(datagrid);
+    if (!dg.length) {
+        return;
+    }
+    var st = dg.data('datagrid');
+    if (!st || !st.options) {
+        return;
+    }
+    function safeDateboxValue(sel){
+        var jq = $(sel);
+        try { var v = jq.datebox('getValue'); if(v!=null) return $.trim(v); } catch(e) {}
+        var v2 = jq.val(); return v2 ? $.trim(v2) : '';
+    }
+    function safeComboboxValue(sel){
+        var jq = $(sel);
+        try { var v = jq.combobox('getValue'); if(v!=null) return $.trim(v); } catch(e) {}
+        var v2 = jq.val(); return v2 ? $.trim(v2) : '';
+    }
+    function safeCombotreeValues(sel){
+        var jq = $(sel);
+        try { var arr = jq.combotree('getValues'); if(arr&&arr.length) return $.trim(arr.join(',')); } catch(e) {}
+        var v2 = jq.val(); return v2 ? $.trim(v2) : '';
+    }
+
+    var dateStart = safeDateboxValue('#dateStart');
+    var dateEnd = safeDateboxValue('#dateEnd');
+
+    var consumptionType = safeComboboxValue('#cmbConsumptionType');
+    if(consumptionType === '0') consumptionType = '';
+
+    var cardtype = safeComboboxValue('#cmbCardTypes');
+    if(cardtype === '0') cardtype = '';
+
+    var consume = safeCombotreeValues('#cmbConsume');
+    var demoArea = (function(){
+        var jq = $('#txtDemo');
+        try { return $.trim(jq.textbox('getValue')); } catch(e) { return $.trim(jq.val()||''); }
+    })();
+
+    dg.datagrid('load',{
+        'transactionDateStartStr':dateStart,
+        'transactionDateEndStr':dateEnd,
+        'consumptionType':consumptionType,
+        'consumeID':consume,
+        'cardTypeName':cardtype,
+        'demoArea':demoArea,
+        'weekName':''
+    });
 }
 
 </script>

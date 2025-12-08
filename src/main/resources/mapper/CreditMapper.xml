@@ -52,10 +52,10 @@
             consumption_type = #{consumptionType,jdbcType=NUMERIC},
         </if>
         <if test="consumeID != null">
-            consume_id = #{consumeID,jdbcType=NUMERIC},
+            consume_id = #{consumeID,jdbcType=VARCHAR},
         </if>
         <if test="consumeName != null">
-            consume_name = #{consumeName,jdbcType=NUMERIC},
+            consume_name = #{consumeName,jdbcType=VARCHAR},
         </if>
         <if test="demoArea != null">
             demoarea = #{demoArea,jdbcType=VARCHAR},
@@ -112,8 +112,10 @@
                 and consume_name = #{credit.consumeName,jdbcType=VARCHAR}
             </if>
             <if test="credit.demoArea != null">
-                and (demoarea like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%'
-                or transaction_desc like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%' )
+                and (
+                    demoarea like CONCAT('%', #{credit.demoArea,jdbcType=VARCHAR}, '%')
+                    or transaction_desc like CONCAT('%', #{credit.demoArea,jdbcType=VARCHAR}, '%')
+                )
             </if>
             <if test="credit.weekName != null">
                 and (dayofweek(transaction_date)-1) = #{credit.weekName,jdbcType=VARCHAR}

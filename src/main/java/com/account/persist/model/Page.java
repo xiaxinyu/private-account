@@ -21,6 +21,6 @@ public class Page {
     }
 
     public int getRecordBegin() {
-        return (pageIndex - 1) * pageSize + 1;
+        return Math.max(0, (pageIndex - 1) * pageSize);
     }
 }

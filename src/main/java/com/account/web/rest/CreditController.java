@@ -89,7 +89,10 @@ public class CreditController {
         } catch (DateParseException e) {
             logger.error("date type's params error. params[message = " + e.getMessage() + "]", e);
         }
-        return null;
+        CollectionResult<Credit> empty = new CollectionResult<>();
+        empty.setTotal(0);
+        empty.setRows(java.util.Collections.emptyList());
+        return empty;
     }
 
     @RequestMapping("/credit/delete")

@@ -1,7 +1,7 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
 <%@ include file="../system/header.jsp" %>
-<script type="text/javascript" src="<%=request.getContextPath() %>/plugins/easyui/jquery.portal.js"></script>
-<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/plugins/easyui/portal.css">
+<script type="text/javascript" src="<%=request.getContextPath() %>/plugins/jquery-easyui-1.11.4/jquery.portal.js"></script>
+<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/plugins/jquery-easyui-1.11.4/portal.css">
   <body>   
 	<div id="portal" style="position:relative">
 		<div style="width:30%;">

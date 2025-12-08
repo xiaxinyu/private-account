@@ -16,14 +16,30 @@ var app = {
 
 	date : {
 		format : function(value, row, index) {
-			var date = new Date(value);
-			return date.format('yyyy-MM-dd');
+			function parse(v){
+				if(!v) return null;
+				if(v instanceof Date) return v;
+				if(typeof v==='number') return new Date(v);
+				if(typeof v==='string'){
+					var d = new Date(v.replace(/-/g,'/'));
+					if(isNaN(d.getTime())){
+						var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(v);
+						if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+					}
+					return d;
+				}
+				return null;
+			}
+			var d = parse(value);
+			return d ? d.format('yyyy-MM-dd') : '';
 		}
 	},
 
 	money : {
 		rmb : function(value, row, index) {
-			return '<span style="font-size:12px;font-family:\'Times New Roman\';margin-right:2px;">¥</span><span>' + value+'</span>';
+			var n = Number(value);
+			if(isNaN(n)) return '';
+			return '<span style="font-size:12px;font-family:\'Times New Roman\';margin-right:2px;">¥</span><span>' + n.toFixed(2) + '</span>';
 		}
 	},
 	
