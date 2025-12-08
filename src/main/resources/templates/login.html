@@ -15,26 +15,30 @@
 <div id="particles-js">
     <div class="login">
         <div class="login-top">
-            登录
+            <div class="brand">
+                <div class="brand-title">Private Account</div>
+                <div class="brand-subtitle">Personal Ledger</div>
+            </div>
         </div>
         <form id="login-form" class="form-signin" method="post" action="/authentication/form">
             <div class="login-center clearfix">
                 <div class="login-center-img"><img src="plugins/login/img/name.png"/></div>
                 <div class="login-center-input">
-                    <input type="text" id="username" name="username" value="" placeholder="请输入您的用户名" onfocus="this.placeholder=''"
-                           onblur="this.placeholder='请输入您的用户名'"/>
+                    <input type="text" id="username" name="username" value="" placeholder="Please enter your username" onfocus="this.placeholder=''"
+                           onblur="this.placeholder='Please enter your username'"/>
                 </div>
             </div>
             <div class="login-center clearfix">
                 <div class="login-center-img"><img src="plugins/login/img/password.png"/></div>
                 <div class="login-center-input">
-                    <input type="password" id="password" name="password" value="" placeholder="请输入您的密码" onfocus="this.placeholder=''"
-                           onblur="this.placeholder='请输入您的密码'"/>
+                    <input type="password" id="password" name="password" value="" placeholder="Please enter your password" onfocus="this.placeholder=''"
+                           onblur="this.placeholder='Please enter your password'"/>
+                    <span class="toggle-password" onclick="togglePassword()">Show</span>
                 </div>
             </div>
         </form>
         <div class="login-button" onclick="submitForm()">
-            登陆
+            Sign In
         </div>
     </div>
     <div class="sk-rotating-plane"></div>
@@ -66,8 +70,20 @@
 	  }
 	}
 
-	function submitForm(){
+    function submitForm(){
         document.getElementById("login-form").submit()
+    }
+
+    function togglePassword(){
+        var p = document.getElementById('password');
+        var t = document.querySelector('.toggle-password');
+        if(p.type === 'password'){
+            p.type = 'text';
+            t.innerText = 'Hide';
+        }else{
+            p.type = 'password';
+            t.innerText = 'Show';
+        }
     }
 
 </script>

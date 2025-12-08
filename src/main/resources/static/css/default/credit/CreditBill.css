@@ -14,3 +14,4 @@
 /* datagrid visual tweaks */
 #datagrid .datagrid-header .datagrid-cell { white-space: nowrap; }
 #datagrid .datagrid-cell { overflow: hidden; text-overflow: ellipsis; }
+.app-font, body, button, input, select, textarea { font-family: "Segoe UI", Arial, Helvetica, sans-serif; }

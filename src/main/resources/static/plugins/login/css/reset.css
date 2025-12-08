@@ -1,4 +1,4 @@
-﻿@charset "utf-8";
+@charset "utf-8";
 /* CSS Document */
 /*Reset*/
 *{box-sizing:content-box;}
@@ -31,5 +31,5 @@ div{word-wrap: break-word;word-break: normal;}
 p{text-align:justify; text-justify:inter-ideograph;}
 */
 /*general*/
-body{font-size:12px;font-family:'微软雅黑',"宋体","Arial Narrow",Helvetica,sans-serif;color:#000;line-height:1.2;text-align:left;}
+body{font-size:12px;font-family:"Segoe UI", Arial, Helvetica, sans-serif;color:#000;line-height:1.2;text-align:left;}
 a{color:#333;text-decoration:none;}

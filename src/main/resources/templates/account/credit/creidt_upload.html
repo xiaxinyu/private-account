@@ -2,12 +2,27 @@
 <head>
     <title>== Bill Upload ==</title>
     <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.easyui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
 </head>
-<body style="text-align:center">
-<br><br><br><br>
-<h1>Please choose bill file</h1>
-<form method="post" action="/v1/credit/upload.html" enctype="multipart/form-data">
-    <input type="file" name="creditBillFile">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input type="submit" value="提交">
-</form>
+<body class="easyui-layout">
+<div data-options="region:'center',border:false" style="display:flex;align-items:center;justify-content:center;">
+    <div class="easyui-panel" title="Upload Credit Bill" style="width:520px;padding:24px 24px 8px 24px;" data-options="border:true">
+        <form method="post" action="/v1/credit/upload.html" enctype="multipart/form-data" style="text-align:left;">
+            <div style="margin-bottom:16px;">
+                <input class="easyui-filebox" name="creditBillFile" data-options="prompt:'请选择账单文件'" style="width:100%;">
+            </div>
+            <div style="text-align:right;">
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitUpload()">提交</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script type="text/javascript">
+    function submitUpload(){
+        document.querySelector('form').submit();
+    }
+</script>
 </body>
 </html>
