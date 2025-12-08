@@ -51,4 +51,39 @@ public class AccountController {
         return "account/credit/report/week_consume_report";
     }
 
+    @RequestMapping("/account/salary/Salary.jsp")
+    public String salary(ModelMap model) {
+        log.info("************ Hello, Salary in Private Account ************");
+        return "account/salary/Salary";
+    }
+
+    @RequestMapping("/account/house-rent/HouseRent.jsp")
+    public String houseRent(ModelMap model) {
+        log.info("************ Hello, HouseRent in Private Account ************");
+        return "account/house-rent/HouseRent";
+    }
+
+    @RequestMapping("/account/endowment/Endowment.jsp")
+    public String endowment(ModelMap model) {
+        log.info("************ Hello, Endowment in Private Account ************");
+        return "account/endowment/Endowment";
+    }
+
+    @RequestMapping("/account/accumulation/accumulation.jsp")
+    public String accumulation(ModelMap model) {
+        log.info("************ Hello, Accumulation in Private Account ************");
+        return "account/accumulation/accumulation";
+    }
+
+    @RequestMapping("/account/medical/Medical.jsp")
+    public String medical(ModelMap model) {
+        log.info("************ Hello, Medical in Private Account ************");
+        return "account/medical/Medical";
+    }
+
+    @RequestMapping("/account/unemployment/UnEmployment.jsp")
+    public String unemployment(ModelMap model) {
+        log.info("************ Hello, UnEmployment in Private Account ************");
+        return "account/unemployment/UnEmployment";
+    }
 }

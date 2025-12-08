@@ -17,7 +17,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:mysql://127.0.0.1:3306/private-account?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=UTC
     username: root
-    password: Summer156242
+    password: 123456
     hikari:
       minimum-idle: 3
       idle-timeout: 600000
