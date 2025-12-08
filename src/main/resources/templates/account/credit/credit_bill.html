@@ -14,40 +14,40 @@
     <link rel="stylesheet" type="text/css" href="/css/default/credit/CreditBill.css">
 </head>
 <body class="easyui-layout">
-<div data-options="region:'north'" style="height: 32px">
-    <div style="margin-top: 3px;">
+<div data-options="region:'north'" style="height: 48px">
+    <div class="toolbar" style="margin-top: 3px;">
 			<span class="item_intervel">
 	           	<label>Date</label>
-            <input id="dateStart" class="easyui-datebox" style="width: 100px;"
+            <input id="dateStart" class="easyui-datebox" style="width: 120px;"
                        phptag="phptag_home_m_1_1001"/>
 	           	~ 
-            <input id="dateEnd" class="easyui-datebox" style="width: 100px;"/>
+            <input id="dateEnd" class="easyui-datebox" style="width: 120px;"/>
 			</span>
 
         <span class="item_intervel">
 	           	<label>Type</label>
                 <input id="cmbConsumptionType" class="easyui-combobox"
-                       data-options="data:credit_datasource.consumptionType,valueField:'id',textField:'text'"
-                       style="width: 100px;">
+                       data-options="data:credit_datasource.consumptionType,valueField:'id',textField:'text',editable:false,prompt:'All types'"
+                       style="width: 120px;">
 			</span>
 
         <span class="item_intervel">
 				<label>Card</label>
                 <input id="cmbCardTypes" class="easyui-combobox"
-                       data-options="data:credit_datasource.cardTypes,valueField:'id',textField:'text'"
-                       style="width: 130px;">
+                       data-options="data:credit_datasource.cardTypes,valueField:'id',textField:'text',editable:false,prompt:'All cards'"
+                       style="width: 160px;">
 			</span>
 
         <span class="item_intervel">
 	          	<label>Consume</label>
                 <select id="cmbConsume" class="easyui-combotree"
                         data-options="data:consume_datasource" multiple
-                        style="width:200px;"></select>
+                        style="width:260px;"></select>
 	          </span>
 
-        <span class="item_intervel">
-	          	<input id="txtDemo" class="easyui-textbox" style="width:120px"> 
-	          </span>
+                <span class="item_intervel">
+            	  	<input id="txtDemo" class="easyui-textbox" data-options="prompt:'Keyword'" style="width:160px"> 
+          	  </span>
 
         <span class="item_intervel">
 	              <a class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="searchCredits()">Search</a>
@@ -83,15 +83,19 @@
 var datagrid = '#datagrid';
 var editIndex = undefined;
 $(function() {
-	$(datagrid).datagrid({
-		method:'post',
-		title:'Total:<span id="totalConsume" style="color:red">0</span>',
-		url: '/credit/getCredits',
-		onDblClickRow:function(rowIndex, rowData){
-			$(this).datagrid('cancelEdit', editIndex);
-			editIndex = rowIndex;
-			$(this).datagrid('beginEdit', rowIndex);
-		},
+    $(datagrid).datagrid({
+        method:'post',
+        title:'Total:<span id="totalConsume" style="color:red">0</span>',
+        url: '/credit/getCredits',
+        fitColumns:true,
+        striped:true,
+        autoRowHeight:true,
+        scrollbarSize:14,
+        onDblClickRow:function(rowIndex, rowData){
+            $(this).datagrid('cancelEdit', editIndex);
+            editIndex = rowIndex;
+            $(this).datagrid('beginEdit', rowIndex);
+        },
 		onClickRow:function(rowIndex, rowData){
 			$(this).datagrid('cancelEdit', editIndex);
 		},

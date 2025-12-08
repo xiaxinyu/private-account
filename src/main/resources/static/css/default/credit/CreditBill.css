@@ -1,4 +1,15 @@
-.item_intervel{
-	margin-left: 10px;
-	margin-right: 2px;
-}
+.item_intervel{ margin-left: 8px; margin-right: 6px; }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; row-gap: 4px; }
+.toolbar label { margin-right: 4px; color: #333; min-width: 48px; font-size: 12px; }
+.toolbar .item_intervel { display: flex; align-items: center; margin-bottom: 4px; }
+.toolbar .easyui-datebox,
+.toolbar .easyui-combobox,
+.toolbar .easyui-combotree,
+.toolbar .easyui-textbox { margin-right: 8px; }
+.toolbar .textbox { height: 26px; }
+.toolbar .l-btn { height: 26px; line-height: 26px; }
+
+/* datagrid visual tweaks */
+#datagrid .datagrid-header .datagrid-cell { white-space: nowrap; }
+#datagrid .datagrid-cell { overflow: hidden; text-overflow: ellipsis; }
