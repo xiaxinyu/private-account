@@ -35,11 +35,6 @@ spring:
       max-lifetime: 1800000
       connection-timeout: 30000
       connection-test-query: SELECT 1
-  http:
-    encoding:
-      force: true
-      charset: UTF-8
-      enabled: true
   servlet:
     multipart:
       max-file-size: 50MB
@@ -49,17 +44,11 @@ account:
   des-sign-key: 45a8c1035b35c7d56882189d5349cd9c
 
 server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   tomcat:
     uri-encoding: UTF-8
     maxHttpHeaderSize: 65536
-
-ribbon:
-  ConnectTimeout: 10000
-  ReadTimeout: 8000
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health # 暴露所有端口
-    enabled-by-default: true # 启用所有端口

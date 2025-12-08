@@ -2,7 +2,6 @@ package com.account.persist.mapper;
 
 import java.util.List;
 
-import com.account.persist.model.Salary;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 
