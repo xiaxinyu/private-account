@@ -57,9 +57,33 @@ public class AccountController {
         return "account/salary/Salary";
     }
 
+    @RequestMapping("/account/salary/Salary.html")
+    public String salaryHtml(ModelMap model) {
+        log.info("************ Hello, Salary HTML in Private Account ************");
+        return "account/salary/Salary";
+    }
+
+    @RequestMapping("/account/salary")
+    public String salaryRest(ModelMap model) {
+        log.info("************ Hello, Salary REST in Private Account ************");
+        return "account/salary/Salary";
+    }
+
     @RequestMapping("/account/house-rent/HouseRent.jsp")
     public String houseRent(ModelMap model) {
         log.info("************ Hello, HouseRent in Private Account ************");
+        return "account/house-rent/HouseRent";
+    }
+
+    @RequestMapping("/account/house-rent/HouseRent.html")
+    public String houseRentHtml(ModelMap model) {
+        log.info("************ Hello, HouseRent HTML in Private Account ************");
+        return "account/house-rent/HouseRent";
+    }
+
+    @RequestMapping("/account/house-rent")
+    public String houseRentRest(ModelMap model) {
+        log.info("************ Hello, HouseRent REST in Private Account ************");
         return "account/house-rent/HouseRent";
     }
 
@@ -69,9 +93,33 @@ public class AccountController {
         return "account/endowment/Endowment";
     }
 
+    @RequestMapping("/account/endowment/Endowment.html")
+    public String endowmentHtml(ModelMap model) {
+        log.info("************ Hello, Endowment HTML in Private Account ************");
+        return "account/endowment/Endowment";
+    }
+
+    @RequestMapping("/account/endowment")
+    public String endowmentRest(ModelMap model) {
+        log.info("************ Hello, Endowment REST in Private Account ************");
+        return "account/endowment/Endowment";
+    }
+
     @RequestMapping("/account/accumulation/accumulation.jsp")
     public String accumulation(ModelMap model) {
         log.info("************ Hello, Accumulation in Private Account ************");
+        return "account/accumulation/accumulation";
+    }
+
+    @RequestMapping("/account/accumulation/accumulation.html")
+    public String accumulationHtml(ModelMap model) {
+        log.info("************ Hello, Accumulation HTML in Private Account ************");
+        return "account/accumulation/accumulation";
+    }
+
+    @RequestMapping("/account/accumulation")
+    public String accumulationRest(ModelMap model) {
+        log.info("************ Hello, Accumulation REST in Private Account ************");
         return "account/accumulation/accumulation";
     }
 
@@ -81,9 +129,33 @@ public class AccountController {
         return "account/medical/Medical";
     }
 
+    @RequestMapping("/account/medical/Medical.html")
+    public String medicalHtml(ModelMap model) {
+        log.info("************ Hello, Medical HTML in Private Account ************");
+        return "account/medical/Medical";
+    }
+
+    @RequestMapping("/account/medical")
+    public String medicalRest(ModelMap model) {
+        log.info("************ Hello, Medical REST in Private Account ************");
+        return "account/medical/Medical";
+    }
+
     @RequestMapping("/account/unemployment/UnEmployment.jsp")
     public String unemployment(ModelMap model) {
         log.info("************ Hello, UnEmployment in Private Account ************");
+        return "account/unemployment/UnEmployment";
+    }
+
+    @RequestMapping("/account/unemployment/UnEmployment.html")
+    public String unemploymentHtml(ModelMap model) {
+        log.info("************ Hello, UnEmployment HTML in Private Account ************");
+        return "account/unemployment/UnEmployment";
+    }
+
+    @RequestMapping("/account/unemployment")
+    public String unemploymentRest(ModelMap model) {
+        log.info("************ Hello, UnEmployment REST in Private Account ************");
         return "account/unemployment/UnEmployment";
     }
 }
