@@ -1,6 +1,6 @@
 .item_intervel{ margin-left: 6px; margin-right: 6px; }
 
-.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; row-gap: 2px; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; row-gap: 2px; height: 100%; padding: 0 8px; }
 .toolbar label { margin-right: 6px; color: #222; min-width: 60px; font-size: 12px; font-weight: 600; }
 .toolbar .item_intervel { display: flex; align-items: center; margin-bottom: 2px; }
 .toolbar .easyui-datebox,
@@ -14,4 +14,5 @@
 /* datagrid visual tweaks */
 #datagrid .datagrid-header .datagrid-cell { white-space: nowrap; }
 #datagrid .datagrid-cell { overflow: hidden; text-overflow: ellipsis; }
+.toolbar .combo-panel { border: 1px solid #aac5e7; }
 .app-font, body, button, input, select, textarea { font-family: "Segoe UI", Arial, Helvetica, sans-serif; }

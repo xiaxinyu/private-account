@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
         }
 
         // 系统异常处理
-        message = messageSource.getMessage("error.system.error", null, Locale.getDefault());
+        message = messageSource.getMessage("error.system.error", null, "System error", Locale.getDefault());
         return ResponseEntity.error(message);
     }
 

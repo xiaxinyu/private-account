@@ -5,23 +5,72 @@
     <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.easyui.min.js"></script>
     <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/default/easyui.css">
     <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
+    <script type="text/javascript" src="/datasource/credit-upload-datasource.js"></script>
+    <style>
+        .upload-page .panel,
+        .upload-page .panel-header,
+        .upload-page .panel-body { border: 0; background: transparent; box-shadow: none; }
+        .upload-page .form-row{display:flex;gap:16px;margin-bottom:12px;}
+        .upload-page .field{display:flex;flex-direction:column;width:200px;}
+        .upload-page .field-label{margin-bottom:4px;color:#222;font-size:12px;font-weight:600;}
+        .upload-page .inline-field{display:flex;align-items:center;gap:6px;}
+        .upload-page .inline-field .field-label{margin-bottom:0;min-width:90px;white-space:nowrap;}
+        .upload-page .actions{margin-top:8px;}
+        .upload-page .combo-panel{background:#ffffff;border:1px solid #aac5e7;}
+        .upload-page .combobox-item-hover{background:#f5f5f5;}
+        .upload-page .combobox-item-selected{background:#e6f7ff;}
+    </style>
 </head>
-<body class="easyui-layout">
-<div data-options="region:'center',border:false" style="display:flex;align-items:center;justify-content:center;">
-    <div class="easyui-panel" title="Upload Credit Bill" style="width:520px;padding:24px 24px 8px 24px;" data-options="border:true">
-        <form method="post" action="/v1/credit/upload.html" enctype="multipart/form-data" style="text-align:left;">
-            <div style="margin-bottom:16px;">
-                <input class="easyui-filebox" name="creditBillFile" data-options="prompt:'请选择账单文件'" style="width:100%;">
+<body class="upload-page">
+<div style="padding:24px 24px 0 24px;max-width:720px;">
+    <form id="uploadForm" method="post" action="/v1/credit/upload.html" enctype="multipart/form-data" style="text-align:left;">
+        <div class="form-row">
+            <div class="inline-field">
+                <label class="field-label">Bank Name</label>
+                <input id="cmbBank" name="bankCode" class="easyui-combobox" style="width:200px;"
+                       data-options="data:credit_upload_datasource.banks,valueField:'id',textField:'text',editable:false">
             </div>
-            <div style="text-align:right;">
-                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitUpload()">提交</a>
+            <div class="inline-field">
+                <label class="field-label">Card Type</label>
+                <input id="cmbCardType" name="cardTypeCode" class="easyui-combobox" style="width:200px;"
+                       data-options="data:credit_upload_datasource.cardTypes,valueField:'id',textField:'text',editable:false">
             </div>
-        </form>
-    </div>
+            <div class="inline-field">
+                <label class="field-label">Card Number</label>
+                <input id="cmbCardNo" name="cardNo" class="easyui-combobox" style="width:200px;"
+                       data-options="valueField:'id',textField:'text',editable:false">
+            </div>
+        </div>
+        <div class="form-row">
+            <input class="easyui-filebox" name="creditBillFile" data-options="prompt:'Please choose bill file'" style="width:400px;">
+            <a href="javascript:void(0)" class="easyui-linkbutton" style="width:100px" data-options="iconCls:'icon-save'" onclick="submitUpload()">Submit</a>
+        </div>
+    </form>
 </div>
 <script type="text/javascript">
     function submitUpload(){
-        document.querySelector('form').submit();
+        document.getElementById('uploadForm').submit();
+    }
+    $(function(){
+        $('#cmbBank').combobox({
+            onSelect: function(){ updateCardNos(); },
+            onChange: function(){ updateCardNos(); }
+        });
+        $('#cmbCardType').combobox({
+            onSelect: function(){ updateCardNos(); },
+            onChange: function(){ updateCardNos(); }
+        });
+        $('#cmbCardType').combobox('setValue','deposit');
+        updateCardNos();
+    });
+    function updateCardNos(){
+        var bank = $('#cmbBank').combobox('getValue') || '';
+        var type = $('#cmbCardType').combobox('getValue') || '';
+        if(type !== 'deposit' && type !== 'credit'){ type = 'deposit'; }
+        if(!bank){ $('#cmbCardNo').combobox('loadData', []); return; }
+        var list = credit_upload_datasource.getCards(bank,type);
+        $('#cmbCardNo').combobox('loadData', list);
+        $('#cmbCardNo').combobox('clear');
     }
 </script>
 </body>
