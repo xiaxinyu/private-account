@@ -1,14 +1,15 @@
-.item_intervel{ margin-left: 8px; margin-right: 6px; }
+.item_intervel{ margin-left: 6px; margin-right: 6px; }
 
-.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; row-gap: 4px; }
-.toolbar label { margin-right: 4px; color: #333; min-width: 48px; font-size: 12px; }
-.toolbar .item_intervel { display: flex; align-items: center; margin-bottom: 4px; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; row-gap: 2px; }
+.toolbar label { margin-right: 6px; color: #222; min-width: 60px; font-size: 12px; font-weight: 600; }
+.toolbar .item_intervel { display: flex; align-items: center; margin-bottom: 2px; }
 .toolbar .easyui-datebox,
 .toolbar .easyui-combobox,
 .toolbar .easyui-combotree,
 .toolbar .easyui-textbox { margin-right: 8px; }
-.toolbar .textbox { height: 26px; }
-.toolbar .l-btn { height: 26px; line-height: 26px; }
+.toolbar .combo, .toolbar .datebox, .toolbar .textbox { height: 24px; }
+.toolbar .textbox .textbox-text { height: 24px; line-height: 24px; font-size: 12px; }
+.toolbar .l-btn { height: 24px; line-height: 24px; }
 
 /* datagrid visual tweaks */
 #datagrid .datagrid-header .datagrid-cell { white-space: nowrap; }
