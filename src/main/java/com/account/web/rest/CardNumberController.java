@@ -1,29 +1,33 @@
 package com.account.web.rest;
 
 import com.account.persist.model.BankCard;
+import com.account.persist.model.KeyValue;
 import com.account.service.card.BankCardService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-@Controller
+@RestController
+@RequestMapping("/api/v1/cards")
 public class CardNumberController {
 
     @Autowired
     private BankCardService bankCardService;
 
-    @RequestMapping("/card/numbers")
-    @ResponseBody
-    public List<Map<String, String>> list(@RequestParam("bankCode") String bankCode,
-                                          @RequestParam("cardTypeCode") String cardTypeCode){
+    @GetMapping("/numbers")
+    public List<KeyValue> list(@RequestParam("bankCode") String bankCode,
+                               @RequestParam("cardTypeCode") String cardTypeCode){
         List<BankCard> cards = bankCardService.listByBankAndType(bankCode, cardTypeCode);
-        return cards.stream().map(c -> Map.of("id", c.getCardNo(), "text", c.getCardNo())).collect(Collectors.toList());
+        return cards.stream().map(c -> {
+            KeyValue kv = new KeyValue();
+            kv.setKey(c.getCardNo());
+            kv.setValue(c.getCardNo());
+            return kv;
+        }).collect(Collectors.toList());
     }
 }
-

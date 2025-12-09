@@ -121,6 +121,22 @@ public class CreditServiceImpl implements ICreditService {
         }
     }
 
+    @Override
+    public void addCredits(List<Credit> credits, String userName) {
+        if (credits == null || credits.isEmpty()) {
+            throw new AppException("No exist parsed credit data");
+        }
+        for (Credit credit : credits) {
+            try {
+                credit.setCreateUser(userName);
+                credit.setUpdateUser(userName);
+                creditMapper.insert(credit);
+            } catch (Exception e) {
+                log.error("Saving credit has error: credit={}", credit, e);
+            }
+        }
+    }
+
     private void fetchCreditParam(Credit credit) throws DateParseException {
         if (StringTool.isNullOrEmpty(credit.getCardTypeName())) {
             credit.setCardTypeName(null);

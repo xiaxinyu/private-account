@@ -19,6 +19,8 @@ public interface ICreditService {
 	int countCredit(Credit credit) throws AppServiceException;
 	
 	void addCredits(List<String[]> rowDatas,String customerName,String recordID);
+
+	void addCredits(List<Credit> credits, String userName);
 	
 	String consumeReport(Credit credit) throws AppServiceException;
 	

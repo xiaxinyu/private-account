@@ -38,7 +38,7 @@
             <div class="inline-field">
                 <label class="field-label">Card Number</label>
                 <input id="cmbCardNo" name="cardNo" class="easyui-combobox" style="width:200px;"
-                       data-options="valueField:'id',textField:'text',editable:false">
+                       data-options="valueField:'key',textField:'value',editable:false">
             </div>
         </div>
         <div class="form-row">
@@ -68,7 +68,7 @@
         var type = $('#cmbCardType').combobox('getValue') || '';
         if(type !== 'deposit' && type !== 'credit'){ type = 'deposit'; }
         if(!bank){ $('#cmbCardNo').combobox('loadData', []); return; }
-        $.getJSON('/card/numbers',{bankCode:bank,cardTypeCode:type}, function(list){
+        $.getJSON('/api/v1/cards/numbers',{bankCode:bank,cardTypeCode:type}, function(list){
             $('#cmbCardNo').combobox('loadData', list);
             $('#cmbCardNo').combobox('clear');
         });
