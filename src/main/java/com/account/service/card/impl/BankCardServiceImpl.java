@@ -45,4 +45,14 @@ public class BankCardServiceImpl extends ServiceImpl<BankCardMapper, BankCard> i
           .last("limit 1");
         return super.getOne(qw);
     }
+
+    @Override
+    public BankCard getByCardNo(String cardNo) {
+        LambdaQueryWrapper<BankCard> qw = Wrappers.lambdaQuery();
+        qw.select(BankCard::getId, BankCard::getBankCode, BankCard::getCardTypeCode, BankCard::getCardNo, BankCard::getCardName, BankCard::getDeleted)
+          .eq(BankCard::getCardNo, cardNo)
+          .eq(BankCard::getDeleted, 0)
+          .last("limit 1");
+        return super.getOne(qw);
+    }
 }

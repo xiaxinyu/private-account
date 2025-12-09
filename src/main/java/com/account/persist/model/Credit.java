@@ -23,6 +23,8 @@ public class Credit extends BaseEntity {
     private String cardId;
     @TableField(value = "bank_card_id")
     private String bankCardId;
+    @TableField(value = "bank_card_name")
+    private String bankCardName;
     private Date transactionDate;
 
     @TableField(value = "bookkeeping_date")

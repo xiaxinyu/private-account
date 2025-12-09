@@ -9,6 +9,7 @@
         id,
         card_id,
         bank_card_id,
+        bank_card_name,
         transaction_date,
         bookkeeping_date,
         transaction_desc,
@@ -28,6 +29,7 @@
             #{credit.id,jdbcType=VARCHAR},
             #{credit.cardId,jdbcType=VARCHAR},
             #{credit.bankCardId,jdbcType=VARCHAR},
+            #{credit.bankCardName,jdbcType=VARCHAR},
             #{credit.transactionDate,jdbcType=DATE},
             #{credit.bookKeepingDate,jdbcType=DATE},
             #{credit.transactionDesc,jdbcType=VARCHAR},
@@ -74,6 +76,7 @@
         <id column="id" property="id" jdbcType="VARCHAR"/>
         <result column="card_id" property="cardId" jdbcType="VARCHAR"/>
         <result column="bank_card_id" property="bankCardId" jdbcType="VARCHAR"/>
+        <result column="bank_card_name" property="bankCardName" jdbcType="VARCHAR"/>
         <result column="transaction_date" property="transactionDate" jdbcType="DATE"/>
         <result column="bookkeeping_date" property="bookKeepingDate" jdbcType="DATE"/>
         <result column="transaction_desc" property="transactionDesc" jdbcType="VARCHAR"/>
@@ -89,7 +92,7 @@
 
     <select id="getCredits" resultMap="baseCreditResultMap">
         select * from (
-        select id, card_id, bank_card_id, transaction_date, bookkeeping_date, transaction_desc, balance_currency,
+        select id, card_id, bank_card_id, bank_card_name, transaction_date, bookkeeping_date, transaction_desc, balance_currency,
         balance_money, card_type_id, card_type_name, consumption_type, consume_id, consume_name, demoarea
         from credit where 1 = 1
         <if test="credit != null">

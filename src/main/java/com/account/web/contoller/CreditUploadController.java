@@ -68,10 +68,15 @@ public class CreditUploadController {
                     .get(StringUtils.trimToEmpty(bankCode), StringUtils.trimToEmpty(cardTypeCode))
                     .parse(dataRows, bankCode, cardTypeCode, cardNo);
             BankCard bankCard = bankCardService.getByBankTypeNo(StringUtils.trimToEmpty(bankCode), StringUtils.trimToEmpty(cardTypeCode), StringUtils.trimToEmpty(cardNo));
+            if (bankCard == null && StringUtils.isNotBlank(cardNo)) {
+                bankCard = bankCardService.getByCardNo(StringUtils.trimToEmpty(cardNo));
+            }
             String bankCardId = bankCard == null ? null : bankCard.getId();
+            String bankCardName = bankCard == null ? null : bankCard.getCardName();
             for (com.account.persist.model.Credit c : credits) {
                 if (StringUtils.isNotBlank(bankCardId)) {
-                    c.setCardId(bankCardId);
+                    c.setBankCardId(bankCardId);
+                    c.setBankCardName(bankCardName);
                 }
                 c.setRecordID(creditRecord.getId());
             }

@@ -8,4 +8,5 @@ public interface BankCardService {
     List<BankCard> listByBankAndType(String bankCode, String cardTypeCode);
     List<BankCard> listAllEnabled();
     BankCard getByBankTypeNo(String bankCode, String cardTypeCode, String cardNo);
+    BankCard getByCardNo(String cardNo);
 }

@@ -61,18 +61,18 @@
         <thead>
         <tr>
             <th data-options="field:'id',hidden:true">ID</th>
-            <th data-options="field:'cardTypeName',width:120">Card type</th>
-            <th data-options="field:'transactionDate',width:80,align:'center',formatter:app.date.format">Book date</th>
-            <th data-options="field:'transactionDesc',width:250,align:'left'">Transaction desc</th>
+            <th data-options="field:'bankCardName',width:160">Card Name</th>
+            <th data-options="field:'transactionDate',width:80,align:'center',formatter:app.date.format">Posting Date</th>
+            <th data-options="field:'transactionDesc',width:250,align:'left'">Narration</th>
             <th data-options="field:'balanceCurrency',width:80,align:'center'">Currency</th>
-            <th data-options="field:'balanceMoney',width:100,formatter:app.money.rmb">Balance money</th>
-            <th data-options="field:'consumptionType',width:90,align:'center',formatter:fmt.consumptionType,editor:{type:'combobox',options:{valueField:'id',textField:'text',data:credit_datasource.consumptionType}}">
-                Type
+            <th data-options="field:'balanceMoney',width:100,formatter:app.money.rmb">Amount</th>
+            <th data-options="field:'consumptionType',width:110,align:'center',formatter:fmt.consumptionType,editor:{type:'combobox',options:{valueField:'id',textField:'text',data:credit_datasource.consumptionType}}">
+                Transaction Type
             </th>
-            <th data-options="field:'consumeID',width:200,align:'left',formatter:fmt.consume,editor:{type:'combotree',options:{data:consume_datasource}}">
-                Consume Type
+            <th data-options="field:'consumeID',width:220,align:'left',formatter:fmt.consume,editor:{type:'combotree',options:{data:consume_datasource}}">
+                Category
             </th>
-            <th data-options="field:'demoArea',width:420,align:'left',editor:{type:'textbox'}">Description</th>
+            <th data-options="field:'demoArea',width:420,align:'left',editor:{type:'textbox'}">Remarks</th>
         </tr>
         </thead>
     </table>
