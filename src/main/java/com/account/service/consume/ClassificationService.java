@@ -32,6 +32,8 @@ public class ClassificationService {
         if (rules == null) reload();
         String text = normalize(narration);
         if (!StringUtils.hasText(text)) return null;
+        int bestScore = Integer.MIN_VALUE;
+        ConsumeCategory bestCat = null;
         for (ConsumeRule r : rules){
             if (StringUtils.hasText(r.getBankCode())){
                 if (!r.getBankCode().equalsIgnoreCase(s(bankCode))) continue;
@@ -39,16 +41,20 @@ public class ClassificationService {
             if (StringUtils.hasText(r.getCardTypeCode())){
                 if (!r.getCardTypeCode().equalsIgnoreCase(s(cardTypeCode))) continue;
             }
-            if (match(text, r.getPattern(), r.getPatternType())){
-                ConsumeCategory cat = categoryMap.get(r.getCategoryId());
-                if (cat == null) continue;
-                Result res = new Result();
-                res.id = cat.getId();
-                res.name = cat.getName();
-                return res;
+            if (!match(text, r.getPattern(), r.getPatternType())) continue;
+            ConsumeCategory cat = categoryMap.get(r.getCategoryId());
+            if (cat == null) continue;
+            int score = scoreFor(r);
+            if (score > bestScore){
+                bestScore = score;
+                bestCat = cat;
             }
         }
-        return null;
+        if (bestCat == null) return null;
+        Result res = new Result();
+        res.id = bestCat.getId();
+        res.name = bestCat.getName();
+        return res;
     }
 
     private boolean match(String text, String pattern, String type){
@@ -66,6 +72,17 @@ public class ClassificationService {
 
     private String s(String v){
         return v == null ? "" : v.trim();
+    }
+
+    private int scoreFor(ConsumeRule r){
+        int base = 0;
+        String t = r.getPatternType() == null ? "contains" : r.getPatternType().toLowerCase();
+        if ("equals".equals(t)) base = 100;
+        else if ("regex".equals(t)) base = 80;
+        else base = 60;
+        int weight = r.getPriority() == null ? 0 : r.getPriority();
+        int score = base + weight;
+        return score;
     }
 
     public static class Result{

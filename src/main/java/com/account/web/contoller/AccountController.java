@@ -158,4 +158,16 @@ public class AccountController {
         log.info("************ Hello, UnEmployment REST in Private Account ************");
         return "account/unemployment/UnEmployment";
     }
+
+    @RequestMapping("/system/admin/consume_rules.html")
+    public String consumeRules(ModelMap model) {
+        log.info("************ Hello, Category Rules in Private Account ************");
+        return "system/admin/consume_rules";
+    }
+
+    @RequestMapping("/system/admin/consume_categories.html")
+    public String consumeCategories(ModelMap model) {
+        log.info("************ Hello, Category Types in Private Account ************");
+        return "system/admin/consume_categories";
+    }
 }

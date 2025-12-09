@@ -8,75 +8,161 @@
 </head>
 <body class="easyui-layout">
 <div data-options="region:'north'" style="height: 40px;padding:6px 8px;">
-    <a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addCategory()">Add</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addRoot()">Add Root</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addChild()">Add Child</a>
     <a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveCategory()">Save</a>
     <a class="easyui-linkbutton" data-options="iconCls:'icon-remove'" onclick="deleteCategory()">Delete</a>
     <a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="reloadTree()">Reload Tree</a>
+    <span id="hint" style="margin-left:12px;color:#888;">Select a node on the left to edit</span>
 </div>
-<div data-options="region:'center'">
-    <table id="dg" fit="true" data-options="rownumbers:true,singleSelect:true,pagination:true,pageSize:200">
-        <thead>
-        <tr>
-            <th data-options="field:'id',width:160">ID</th>
-            <th data-options="field:'parentId',width:220,editor:{type:'combotree',options:{url:'/api/v1/consume/tree',method:'get'}}">Parent</th>
-            <th data-options="field:'code',width:120,editor:{type:'textbox'}">Code</th>
-            <th data-options="field:'name',width:220,editor:{type:'textbox'}">Name</th>
-            <th data-options="field:'level',width:80">Level</th>
-            <th data-options="field:'sortNo',width:80,editor:{type:'numberbox'}">Sort</th>
-            <th data-options="field:'deleted',width:80,editor:{type:'checkbox',options:{on:1,off:0}}">Deleted</th>
-        </tr>
-        </thead>
-    </table>
+
+<div data-options="region:'west'" style="width: 320px; border-right: 1px solid #ddd; padding:6px;">
+    <ul id="tree" class="easyui-tree" data-options="url:'/api/v1/consume/tree',method:'get'"></ul>
+    <div style="margin-top:6px;color:#888;">Use right-click or toolbar to manage nodes</div>
+    <div style="margin-top:6px;">
+        <a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="width:100%;" onclick="reloadTree()">Reload</a>
+    </div>
+    <input type="hidden" id="hidParentId" />
 </div>
+
+<div data-options="region:'center'" style="padding:12px;">
+    <div style="max-width:560px;">
+        <div style="margin-bottom:10px;display:none;">
+            <label style="display:inline-block;width:120px;">ID</label>
+            <input id="txtId" class="easyui-textbox" style="width:380px;" readonly>
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:inline-block;width:120px;">Parent ID</label>
+            <input id="txtParent" class="easyui-textbox" style="width:380px;" readonly>
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:inline-block;width:120px;">Parent Name</label>
+            <input id="txtParentName" class="easyui-textbox" style="width:380px;" readonly>
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:inline-block;width:120px;">Code</label>
+            <input id="txtCode" class="easyui-textbox" style="width:380px;">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:inline-block;width:120px;">Name</label>
+            <input id="txtName" class="easyui-textbox" style="width:380px;">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:inline-block;width:120px;">Sort</label>
+            <input id="numSort" class="easyui-numberbox" style="width:120px;" data-options="min:0,precision:0">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:inline-block;width:120px;">Deleted</label>
+            <input id="chkDeleted" type="checkbox">
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
-var dg = '#dg';
-var editIndex;
+var tree = '#tree';
+var currentNode = null;
+var currentCat = null;
+var categoriesCache = [];
+
 $(function(){
-    $(dg).datagrid({method:'get',url:'/api/v1/consume/categories'});
+    $(tree).tree({
+        url:'/api/v1/consume/tree',
+        method:'get',
+        onSelect:function(node){ loadNode(node); }
+    });
 });
-function endEditing(){
-    if (editIndex == undefined){return true}
-    if ($(dg).datagrid('validateRow', editIndex)){
-        $(dg).datagrid('endEdit', editIndex);
-        editIndex = undefined;
-        return true;
-    } else {return false}
-}
-function addCategory(){
-    if (endEditing()){
-        $(dg).datagrid('appendRow',{level:2,sortNo:0,deleted:0});
-        editIndex = $(dg).datagrid('getRows').length-1;
-        $(dg).datagrid('selectRow', editIndex).datagrid('beginEdit', editIndex);
+
+function fetchCategoryById(id, cb){
+    if(categoriesCache && categoriesCache.length){
+        var found = null;
+        for(var i=0;i<categoriesCache.length;i++){ if(categoriesCache[i].id===id){ found = categoriesCache[i]; break; } }
+        cb(found);
+        return;
     }
+    $.ajax({url:'/api/v1/consume/categories',type:'GET',success:function(res){
+        categoriesCache = (res && res.rows) ? res.rows : [];
+        var found = null;
+        for(var i=0;i<categoriesCache.length;i++){ if(categoriesCache[i].id===id){ found = categoriesCache[i]; break; } }
+        cb(found);
+    }});
 }
+
+function setForm(cat){
+    $('#txtId').textbox('setValue', cat && cat.id ? cat.id : '');
+    $('#hidParentId').val(cat && cat.parentId ? cat.parentId : '');
+    $('#txtParent').textbox('setValue', cat && cat.parentId ? cat.parentId : '');
+    var parentName = '';
+    if(cat && cat.parentId){
+        fetchCategoryById(cat.parentId, function(p){ $('#txtParentName').textbox('setValue', p && p.name ? p.name : ''); });
+    } else {
+        $('#txtParentName').textbox('setValue','');
+    }
+    $('#txtCode').textbox('setValue', cat && cat.code ? cat.code : '');
+    $('#txtName').textbox('setValue', cat && cat.name ? cat.name : '');
+    $('#numSort').numberbox('setValue', cat && cat.sortNo!=null ? cat.sortNo : 0);
+    $('#chkDeleted').prop('checked', cat && cat.deleted==1);
+}
+
+function getForm(){
+    var id = $('#txtId').textbox('getValue');
+    var parentId = $('#hidParentId').val();
+    var code = $('#txtCode').textbox('getValue');
+    var name = $('#txtName').textbox('getValue');
+    var sortNo = $('#numSort').numberbox('getValue');
+    var deleted = $('#chkDeleted').is(':checked') ? 1 : 0;
+    return {id:id, parentId:parentId, code:code, name:name, sortNo: parseInt(sortNo||'0'), deleted:deleted};
+}
+
+function loadNode(node){
+    currentNode = node;
+    fetchCategoryById(node.id, function(cat){ currentCat = cat; setForm(cat||{parentId:'',sortNo:0,deleted:0}); });
+}
+
+function addRoot(){
+    currentNode = null;
+    currentCat = {id:'',parentId:'',code:'',name:'',sortNo:0,deleted:0};
+    setForm(currentCat);
+}
+
+function addChild(){
+    if(!currentNode) return;
+    currentCat = {id:'',parentId: currentNode.id, code:'', name:'', sortNo:0, deleted:0};
+    setForm(currentCat);
+}
+
 function saveCategory(){
-    if (!endEditing()) return;
-    var row = $(dg).datagrid('getSelected');
-    if (!row) return;
-    var method = row.id ? 'PUT' : 'POST';
-    var url = '/api/v1/consume/categories' + (row.id ? '/' + row.id : '');
-    $.ajax({
-        url:url,
-        type:method,
-        data:JSON.stringify(row),
-        contentType:'application/json',
-        success:function(){ $(dg).datagrid('reload'); },
-        error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }
-    });
+    var cat = getForm();
+    var method = cat.id ? 'PUT' : 'POST';
+    var url = '/api/v1/consume/categories' + (cat.id ? '/' + cat.id : '');
+    $.ajax({url:url,type:method,contentType:'application/json',data:JSON.stringify(cat),success:function(r){
+        categoriesCache = [];
+        $(tree).tree('reload');
+        if(r && r.id){ $('#txtId').textbox('setValue', r.id); }
+    },error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }});
 }
+
 function deleteCategory(){
-    var row = $(dg).datagrid('getSelected');
-    if (!row || !row.id) return;
-    $.ajax({
-        url:'/api/v1/consume/categories/' + row.id,
-        type:'DELETE',
-        success:function(){ $(dg).datagrid('reload'); },
-        error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }
+    var id = $('#txtId').textbox('getValue');
+    var name = $('#txtName').textbox('getValue');
+    if(!id) return;
+    var childrenCount = 0;
+    if(currentNode && currentNode.children && currentNode.children.length){ childrenCount = currentNode.children.length; }
+    var msg = childrenCount>0 ? ('确认删除“'+(name||id)+'”及其'+childrenCount+'个子节点？') : ('确认删除“'+(name||id)+'”？');
+    $.messager.confirm('确认删除', msg, function(r){
+        if(!r) return;
+        $.ajax({url:'/api/v1/consume/categories/'+id,type:'DELETE',success:function(){
+            setForm({parentId:'',sortNo:0,deleted:0});
+            categoriesCache = [];
+            $(tree).tree('reload');
+            $.messager.show({title:'OK',msg:'删除成功'});
+        },error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }});
     });
 }
-function reloadTree(){
-    $.ajax({url:'/api/v1/consume/rules/reload',type:'POST',success:function(){}});
-}
+
+function reloadTree(){ $(tree).tree('reload'); }
+</script>
+
+<div data-options="region:'south'" style="height:0px;display:none;"></div>
 </script>
 </body>
 </html>
