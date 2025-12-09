@@ -99,6 +99,9 @@
             <if test="credit.consumptionType != null">
                 and consumption_type = #{credit.consumptionType,jdbcType=NUMERIC}
             </if>
+            <if test="credit.cardId != null">
+                and card_id = #{credit.cardId,jdbcType=VARCHAR}
+            </if>
             <if test="credit.cardTypeName != null">
                 and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
             </if>
@@ -143,6 +146,9 @@
             </if>
             <if test="credit.consumptionType != null">
                 and consumption_type = #{credit.consumptionType,jdbcType=NUMERIC}
+            </if>
+            <if test="credit.cardId != null">
+                and card_id = #{credit.cardId,jdbcType=VARCHAR}
             </if>
             <if test="credit.cardTypeName != null">
                 and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}

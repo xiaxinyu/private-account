@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface BankCardService {
     List<BankCard> listByBankAndType(String bankCode, String cardTypeCode);
+    List<BankCard> listAllEnabled();
 }
-

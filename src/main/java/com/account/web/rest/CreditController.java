@@ -50,6 +50,9 @@ public class CreditController {
             if (!StringTool.isNullOrEmpty(param.getCardTypeName())) {
                 credit.setCardTypeName(StringUtils.trim(param.getCardTypeName()));
             }
+            if (!StringTool.isNullOrEmpty(param.getCardId())) {
+                credit.setCardId(StringUtils.trim(param.getCardId()));
+            }
             if (!StringTool.isNullOrEmpty(param.getConsumeName())) {
                 credit.setConsumeName(StringUtils.trim(param.getConsumeName()));
             }

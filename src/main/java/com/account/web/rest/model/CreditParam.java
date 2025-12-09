@@ -4,16 +4,17 @@ package com.account.web.rest.model;
  * Created by Summer.Xia on 2015/9/17.
  */
 public class CreditParam extends PageParam {
-	private String transactionDateStartStr;
-	private String transactionDateEndStr;
-	private String consumptionType;
-	private String cardTypeName;
-	private String consumeName;
-	private String consumeID;
-	private String demoArea;
-	private String weekName;
-	private String year;
-	private String month;
+    private String transactionDateStartStr;
+    private String transactionDateEndStr;
+    private String consumptionType;
+    private String cardTypeName;
+    private String cardId;
+    private String consumeName;
+    private String consumeID;
+    private String demoArea;
+    private String weekName;
+    private String year;
+    private String month;
 
 	public String getTransactionDateStartStr() {
 		return transactionDateStartStr;
@@ -39,13 +40,21 @@ public class CreditParam extends PageParam {
 		this.consumptionType = consumptionType;
 	}
 
-	public String getCardTypeName() {
-		return cardTypeName;
-	}
+    public String getCardTypeName() {
+        return cardTypeName;
+    }
 
-	public void setCardTypeName(String cardTypeName) {
-		this.cardTypeName = cardTypeName;
-	}
+    public void setCardTypeName(String cardTypeName) {
+        this.cardTypeName = cardTypeName;
+    }
+
+    public String getCardId() {
+        return cardId;
+    }
+
+    public void setCardId(String cardId) {
+        this.cardId = cardId;
+    }
 
 	public String getConsumeName() {
 		return consumeName;

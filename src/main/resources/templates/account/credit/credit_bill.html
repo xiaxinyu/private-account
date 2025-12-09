@@ -34,7 +34,7 @@
         <span class="item_intervel">
 				<label>Card</label>
                 <input id="cmbCardTypes" class="easyui-combobox"
-                       data-options="data:credit_datasource.cardTypes,valueField:'id',textField:'text',editable:false,prompt:'All cards'"
+                       data-options="url:'/api/v1/cards/list',method:'get',valueField:'key',textField:'value',editable:false,prompt:'All cards'"
                        style="width: 160px;">
 			</span>
 
@@ -138,7 +138,8 @@ $(function(){
         $('#dateStart').datebox({onSelect:function(){searchCredits();}});
         $('#dateEnd').datebox({onSelect:function(){searchCredits();}});
         $('#cmbConsumptionType').combobox({onSelect:function(){searchCredits();}});
-        $('#cmbCardTypes').combobox({onSelect:function(){searchCredits();}});
+        $('#cmbCardTypes').combobox({onSelect:function(){searchCredits();},onShowPanel:function(){ $('#cmbCardTypes').combobox('reload'); }});
+        $('#cmbCardTypes').combobox('reload');
         $('#cmbConsume').combotree({onChange:function(){searchCredits();}});
     };
 });
@@ -267,8 +268,8 @@ function searchCredits() {
     var consumptionType = safeComboboxValue('#cmbConsumptionType');
     if(consumptionType === '0') consumptionType = '';
 
-    var cardtype = safeComboboxValue('#cmbCardTypes');
-    if(cardtype === '0') cardtype = '';
+    var cardId = safeComboboxValue('#cmbCardTypes');
+    if(cardId === '0') cardId = '';
 
     var consume = safeCombotreeValues('#cmbConsume');
     var demoArea = (function(){
@@ -281,7 +282,7 @@ function searchCredits() {
         'transactionDateEndStr':dateEnd,
         'consumptionType':consumptionType,
         'consumeID':consume,
-        'cardTypeName':cardtype,
+        'cardId':cardId,
         'demoArea':demoArea,
         'weekName':''
     });

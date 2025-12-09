@@ -14,5 +14,6 @@ public class BankCard extends BaseEntity {
     private String bankCode;
     private String cardTypeCode; // debit | credit
     private String cardNo;
+    private String cardName;
     private Integer deleted;
 }
