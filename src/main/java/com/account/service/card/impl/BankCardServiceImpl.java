@@ -33,4 +33,16 @@ public class BankCardServiceImpl extends ServiceImpl<BankCardMapper, BankCard> i
           .orderByAsc(BankCard::getCardNo);
         return super.list(qw);
     }
+
+    @Override
+    public BankCard getByBankTypeNo(String bankCode, String cardTypeCode, String cardNo) {
+        LambdaQueryWrapper<BankCard> qw = Wrappers.lambdaQuery();
+        qw.select(BankCard::getId, BankCard::getBankCode, BankCard::getCardTypeCode, BankCard::getCardNo, BankCard::getCardName, BankCard::getDeleted)
+          .eq(BankCard::getBankCode, bankCode)
+          .eq(BankCard::getCardTypeCode, cardTypeCode)
+          .eq(BankCard::getCardNo, cardNo)
+          .eq(BankCard::getDeleted, 0)
+          .last("limit 1");
+        return super.getOne(qw);
+    }
 }

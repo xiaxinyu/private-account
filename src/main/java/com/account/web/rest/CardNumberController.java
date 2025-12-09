@@ -42,20 +42,28 @@ public class CardNumberController {
 
     @GetMapping("/list")
     public List<KeyValue> allCards(){
-        return bankCardService.listAllEnabled().stream().map(c -> {
-            KeyValue kv = new KeyValue();
-            kv.setKey(c.getId());
-            String name = c.getCardName();
-            if (name == null || name.trim().isEmpty()) {
-                String bank = c.getBankCode();
-                String type = c.getCardTypeCode();
-                String no = c.getCardNo();
-                String masked = (no == null) ? "" : (no.length() > 4 ? ("****" + no.substring(no.length()-4)) : no);
-                String typeText = "credit".equalsIgnoreCase(type) ? "Credit Card" : ("debit".equalsIgnoreCase(type) ? "Debit Card" : type);
-                name = String.join(" ", new String[]{bank == null ? "" : bank, typeText == null ? "" : typeText, masked}).trim();
-            }
-            kv.setValue(name);
-            return kv;
-        }).collect(java.util.stream.Collectors.toList());
+        java.util.List<KeyValue> result = new java.util.ArrayList<>();
+        KeyValue all = new KeyValue();
+        all.setKey("kong");
+        all.setValue("All cards");
+        result.add(all);
+        result.addAll(
+            bankCardService.listAllEnabled().stream().map(c -> {
+                KeyValue kv = new KeyValue();
+                kv.setKey(c.getId());
+                String name = c.getCardName();
+                if (name == null || name.trim().isEmpty()) {
+                    String bank = c.getBankCode();
+                    String type = c.getCardTypeCode();
+                    String no = c.getCardNo();
+                    String masked = (no == null) ? "" : (no.length() > 4 ? ("****" + no.substring(no.length()-4)) : no);
+                    String typeText = "credit".equalsIgnoreCase(type) ? "Credit Card" : ("debit".equalsIgnoreCase(type) ? "Debit Card" : type);
+                    name = String.join(" ", new String[]{bank == null ? "" : bank, typeText == null ? "" : typeText, masked}).trim();
+                }
+                kv.setValue(name);
+                return kv;
+            }).collect(java.util.stream.Collectors.toList())
+        );
+        return result;
     }
 }

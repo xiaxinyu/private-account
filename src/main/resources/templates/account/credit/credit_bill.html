@@ -269,7 +269,7 @@ function searchCredits() {
     if(consumptionType === '0') consumptionType = '';
 
     var cardId = safeComboboxValue('#cmbCardTypes');
-    if(cardId === '0') cardId = '';
+    if(cardId === '0' || cardId === 'kong') cardId = '';
 
     var consume = safeCombotreeValues('#cmbConsume');
     var demoArea = (function(){

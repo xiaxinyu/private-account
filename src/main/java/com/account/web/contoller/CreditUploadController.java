@@ -6,6 +6,8 @@ import com.account.service.authentication.AuthenticationFacade;
 import com.account.service.exception.AppException;
 import com.account.service.face.ICreditRecordService;
 import com.account.service.face.ICreditService;
+import com.account.service.card.BankCardService;
+import com.account.persist.model.BankCard;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +44,9 @@ public class CreditUploadController {
     @Autowired
     AuthenticationFacade authenticationFacade;
 
+    @Autowired
+    BankCardService bankCardService;
+
     @PostMapping("/upload.html")
     @Transactional(rollbackFor = Exception.class)
     public String uploadCreditBillFile(@RequestParam("creditBillFile") MultipartFile creditBillFile,
@@ -62,7 +67,12 @@ public class CreditUploadController {
             List<com.account.persist.model.Credit> credits = com.account.service.importer.StatementImporterFactory
                     .get(StringUtils.trimToEmpty(bankCode), StringUtils.trimToEmpty(cardTypeCode))
                     .parse(dataRows, bankCode, cardTypeCode, cardNo);
+            BankCard bankCard = bankCardService.getByBankTypeNo(StringUtils.trimToEmpty(bankCode), StringUtils.trimToEmpty(cardTypeCode), StringUtils.trimToEmpty(cardNo));
+            String bankCardId = bankCard == null ? null : bankCard.getId();
             for (com.account.persist.model.Credit c : credits) {
+                if (StringUtils.isNotBlank(bankCardId)) {
+                    c.setCardId(bankCardId);
+                }
                 c.setRecordID(creditRecord.getId());
             }
             creditService.addCredits(credits, userName);
