@@ -12,8 +12,7 @@ public class BankCard extends BaseEntity {
     @TableId
     private String id;
     private String bankCode;
-    private String cardTypeCode; // deposit | credit
+    private String cardTypeCode; // debit | credit
     private String cardNo;
     private Integer deleted;
 }
-

@@ -22,7 +22,12 @@ public class CardNumberController {
     @GetMapping("/numbers")
     public List<KeyValue> list(@RequestParam("bankCode") String bankCode,
                                @RequestParam("cardTypeCode") String cardTypeCode){
-        List<BankCard> cards = bankCardService.listByBankAndType(bankCode, cardTypeCode);
+        String b = bankCode == null ? "" : bankCode.trim().toUpperCase();
+        String t = cardTypeCode == null ? "" : cardTypeCode.trim().toLowerCase();
+        if (b.isEmpty() || t.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        List<BankCard> cards = bankCardService.listByBankAndType(b, t);
         return cards.stream().map(c -> {
             KeyValue kv = new KeyValue();
             kv.setKey(c.getCardNo());

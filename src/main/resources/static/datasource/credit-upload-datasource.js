@@ -2,17 +2,17 @@ var credit_upload_datasource = {
   banks: [
     { id: 'CCB', text: 'Construction Bank' },
     { id: 'CMB', text: 'China Merchants Bank' },
-    { id: 'GDB', text: 'Guangfa Bank' }
+    { id: 'CGB', text: 'Guangfa Bank' }
   ],
   cardTypes: [
-    { id: 'deposit', text: 'Savings Card' },
+    { id: 'debit', text: 'Debit Card' },
     { id: 'credit', text: 'Credit Card' }
   ],
   cards: {
     CCB: {
-      deposit: [
-        { id: 'CCB-D-001', text: 'CCB Deposit 001' },
-        { id: 'CCB-D-002', text: 'CCB Deposit 002' }
+      debit: [
+        { id: 'CCB-D-001', text: 'CCB Debit 001' },
+        { id: 'CCB-D-002', text: 'CCB Debit 002' }
       ],
       credit: [
         { id: 'CCB-C-001', text: 'xxx' },
@@ -20,7 +20,7 @@ var credit_upload_datasource = {
       ]
     },
     CMB: {
-      deposit: [
+      debit: [
         { id: 'CMB-001', text: 'CMB 001' },
       ]
       ,
@@ -28,12 +28,12 @@ var credit_upload_datasource = {
         { id: 'CMB-C-001', text: 'CMB Credit 001' }
       ]
     },
-    GDB: {
-      deposit: [
-        { id: 'GDB-001', text: 'GDB 001' }
+    CGB: {
+      debit: [
+        { id: 'CGB-001', text: 'CGB 001' }
       ],
       credit: [
-        { id: 'GDB-C-001', text: 'GDB Credit 001' }
+        { id: 'CGB-C-001', text: 'CGB Credit 001' }
       ]
     }
   },

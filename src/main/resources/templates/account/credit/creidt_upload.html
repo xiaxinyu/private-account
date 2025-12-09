@@ -28,12 +28,12 @@
             <div class="inline-field">
                 <label class="field-label">Bank Name</label>
                 <input id="cmbBank" name="bankCode" class="easyui-combobox" style="width:200px;"
-                       data-options="data:credit_upload_datasource.banks,valueField:'id',textField:'text',editable:false">
+                       data-options="data:credit_upload_datasource.banks,valueField:'id',textField:'text',editable:false,prompt:'Please select bank'">
             </div>
             <div class="inline-field">
                 <label class="field-label">Card Type</label>
                 <input id="cmbCardType" name="cardTypeCode" class="easyui-combobox" style="width:200px;"
-                       data-options="data:credit_upload_datasource.cardTypes,valueField:'id',textField:'text',editable:false">
+                       data-options="data:credit_upload_datasource.cardTypes,valueField:'id',textField:'text',editable:false,prompt:'Please select type'">
             </div>
             <div class="inline-field">
                 <label class="field-label">Card Number</label>
@@ -53,21 +53,21 @@
     }
     $(function(){
         $('#cmbBank').combobox({
-            onSelect: function(){ updateCardNos(); },
-            onChange: function(){ updateCardNos(); }
+            onSelect: function(rec){ refreshCardNos((rec && rec.id) || '', ($('#cmbCardType').combobox('getValue') || '').trim()); },
+            onChange: function(val){ refreshCardNos((val || '').trim(), ($('#cmbCardType').combobox('getValue') || '').trim()); }
         });
         $('#cmbCardType').combobox({
-            onSelect: function(){ updateCardNos(); },
-            onChange: function(){ updateCardNos(); }
+            onSelect: function(rec){ refreshCardNos(($('#cmbBank').combobox('getValue') || '').trim(), (rec && rec.id) || ''); },
+            onChange: function(val){ refreshCardNos(($('#cmbBank').combobox('getValue') || '').trim(), (val || '').trim()); }
         });
-        $('#cmbCardType').combobox('setValue','deposit');
-        updateCardNos();
+        // do not trigger initial query until both selected by user
     });
-    function updateCardNos(){
-        var bank = $('#cmbBank').combobox('getValue') || '';
-        var type = $('#cmbCardType').combobox('getValue') || '';
-        if(type !== 'deposit' && type !== 'credit'){ type = 'deposit'; }
-        if(!bank){ $('#cmbCardNo').combobox('loadData', []); return; }
+    function refreshCardNos(bank, type){
+        bank = (bank || '').trim();
+        type = (type || '').trim();
+        if(!bank || !type){ $('#cmbCardNo').combobox('loadData', []); $('#cmbCardNo').combobox('clear'); return; }
+        $('#cmbCardNo').combobox('loadData', []);
+        $('#cmbCardNo').combobox('clear');
         $.getJSON('/api/v1/cards/numbers',{bankCode:bank,cardTypeCode:type}, function(list){
             $('#cmbCardNo').combobox('loadData', list);
             $('#cmbCardNo').combobox('clear');
