@@ -1,0 +1,78 @@
+<html>
+<head>
+    <title>== Category Rules ==</title>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.easyui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
+</head>
+<body class="easyui-layout">
+<div data-options="region:'north'" style="height: 40px;padding:6px 8px;">
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addRule()">Add</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveRule()">Save</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-remove'" onclick="deleteRule()">Delete</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="reloadCache()">Reload Cache</a>
+</div>
+<div data-options="region:'center'">
+    <table id="dg" fit="true" data-options="rownumbers:true,singleSelect:true,pagination:true,pageSize:50">
+        <thead>
+        <tr>
+            <th data-options="field:'id',width:160">ID</th>
+            <th data-options="field:'categoryId',width:220,editor:{type:'combobox',options:{url:'/api/v1/consume/tree',valueField:'id',textField:'text',method:'get'}}">Category</th>
+            <th data-options="field:'pattern',width:260,editor:{type:'textbox'}">Pattern</th>
+            <th data-options="field:'patternType',width:120,editor:{type:'combobox',options:{data:[{id:'contains',text:'contains'},{id:'regex',text:'regex'},{id:'equals',text:'equals'}],valueField:'id',textField:'text'}}">Type</th>
+            <th data-options="field:'priority',width:80,editor:{type:'numberbox'}">Priority</th>
+            <th data-options="field:'active',width:80,editor:{type:'checkbox',options:{on:1,off:0}}">Active</th>
+            <th data-options="field:'bankCode',width:100,editor:{type:'textbox'}">Bank</th>
+            <th data-options="field:'cardTypeCode',width:120,editor:{type:'textbox'}">Card Type</th>
+            <th data-options="field:'remark',width:220,editor:{type:'textbox'}">Remark</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+<script type="text/javascript">
+var dg = '#dg';
+var editIndex = undefined;
+$(function(){
+    $(dg).datagrid({method:'get',url:'/api/v1/consume/rules'});
+});
+function endEditing(){
+    if (editIndex == undefined){return true}
+    if ($(dg).datagrid('validateRow', editIndex)){
+        $(dg).datagrid('endEdit', editIndex);
+        editIndex = undefined;
+        return true;
+    } else {return false}
+}
+function addRule(){
+    if (endEditing()){
+        $(dg).datagrid('appendRow',{priority:100,active:1,patternType:'contains'});
+        editIndex = $(dg).datagrid('getRows').length-1;
+        $(dg).datagrid('selectRow', editIndex).datagrid('beginEdit', editIndex);
+    }
+}
+function saveRule(){
+    if (!endEditing()) return;
+    var row = $(dg).datagrid('getSelected');
+    if (!row) return;
+    var method = row.id ? 'PUT' : 'POST';
+    var url = '/api/v1/consume/rules' + (row.id ? '/' + row.id : '');
+    $.ajax({url:url,type:method,contentType:'application/json',data:JSON.stringify(row)}).done(function(){
+        $(dg).datagrid('reload');
+    });
+}
+function deleteRule(){
+    var row = $(dg).datagrid('getSelected');
+    if (!row || !row.id) return;
+    $.ajax({url:'/api/v1/consume/rules/'+row.id,type:'DELETE'}).done(function(){
+        $(dg).datagrid('reload');
+    });
+}
+function reloadCache(){
+    $.post('/api/v1/consume/rules/reload').done(function(){
+        $.messager.show({title:'OK',msg:'Rules cache reloaded'});
+    });
+}
+</script>
+</body>
+</html>

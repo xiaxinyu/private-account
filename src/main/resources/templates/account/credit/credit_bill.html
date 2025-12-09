@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
     <script type="text/javascript" src="/scripts/credit.js"></script>
     <script type="text/javascript" src="/datasource/creidt-datasource.js"></script>
-    <script type="text/javascript" src="/datasource/consume-datasource.js"></script>
+    
     <link rel="stylesheet" type="text/css" href="/css/default/credit/CreditBill.css">
 </head>
 <body class="easyui-layout">
@@ -41,7 +41,7 @@
         <span class="item_intervel">
 	          	<label>Consume</label>
                 <select id="cmbConsume" class="easyui-combotree"
-                        data-options="data:consume_datasource" multiple
+                        data-options="url:'/api/v1/consume/tree',method:'get'" multiple
                         style="width:260px;"></select>
 	          </span>
 
@@ -69,7 +69,7 @@
             <th data-options="field:'consumptionType',width:110,align:'center',formatter:fmt.consumptionType,editor:{type:'combobox',options:{valueField:'id',textField:'text',data:credit_datasource.consumptionType}}">
                 Transaction Type
             </th>
-            <th data-options="field:'consumeID',width:220,align:'left',formatter:fmt.consume,editor:{type:'combotree',options:{data:consume_datasource}}">
+            <th data-options="field:'consumeID',width:220,align:'left',formatter:function(v,r){return r.consumeName||'';},editor:{type:'combotree',options:{url:'/api/v1/consume/tree',method:'get'}}">
                 Category
             </th>
             <th data-options="field:'demoArea',width:420,align:'left',editor:{type:'textbox'}">Remarks</th>
@@ -140,7 +140,13 @@ $(function(){
         $('#cmbConsumptionType').combobox({onSelect:function(){searchCredits();}});
         $('#cmbCardTypes').combobox({onSelect:function(){searchCredits();},onShowPanel:function(){ $('#cmbCardTypes').combobox('reload'); }});
         $('#cmbCardTypes').combobox('reload');
-        $('#cmbConsume').combotree({onChange:function(){searchCredits();}});
+        $('#cmbConsume').combotree({
+            url:'/api/v1/consume/tree',
+            method:'get',
+            onChange:function(){searchCredits();},
+            onShowPanel:function(){ try{$('#cmbConsume').combotree('reload','/api/v1/consume/tree');}catch(e){} }
+        });
+        try{$('#cmbConsume').combotree('reload','/api/v1/consume/tree');}catch(e){}
     };
 });
 
@@ -185,23 +191,7 @@ var fmt = {
     }
 }
 
-var consume_operate = {
-    find: function(id){
-        if(!id){ return null; }
-        function loop(nodes){
-            for(var i=0;i<nodes.length;i++){
-                var n = nodes[i];
-                if(n.id === id){ return n; }
-                if(n.children){
-                    var r = loop(n.children);
-                    if(r){ return r; }
-                }
-            }
-            return null;
-        }
-        return loop(consume_datasource);
-    }
-};
+var consume_operate = {};
 
 function updateCredit() {
 	var rowData = $(datagrid).datagrid('getSelected');

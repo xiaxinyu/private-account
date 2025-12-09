@@ -46,6 +46,8 @@ public class CreditUploadController {
 
     @Autowired
     BankCardService bankCardService;
+    @Autowired
+    com.account.service.consume.ClassificationService classificationService;
 
     @PostMapping("/upload.html")
     @Transactional(rollbackFor = Exception.class)
@@ -77,6 +79,11 @@ public class CreditUploadController {
                 if (StringUtils.isNotBlank(bankCardId)) {
                     c.setBankCardId(bankCardId);
                     c.setBankCardName(bankCardName);
+                }
+                com.account.service.consume.ClassificationService.Result r = classificationService.classify(c.getTransactionDesc(), bankCode, cardTypeCode);
+                if (r != null) {
+                    c.setConsumeID(r.id);
+                    c.setConsumeName(r.name);
                 }
                 c.setRecordID(creditRecord.getId());
             }

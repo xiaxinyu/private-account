@@ -1,0 +1,82 @@
+<html>
+<head>
+    <title>== Category Types ==</title>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.easyui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
+</head>
+<body class="easyui-layout">
+<div data-options="region:'north'" style="height: 40px;padding:6px 8px;">
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addCategory()">Add</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveCategory()">Save</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-remove'" onclick="deleteCategory()">Delete</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="reloadTree()">Reload Tree</a>
+</div>
+<div data-options="region:'center'">
+    <table id="dg" fit="true" data-options="rownumbers:true,singleSelect:true,pagination:true,pageSize:200">
+        <thead>
+        <tr>
+            <th data-options="field:'id',width:160">ID</th>
+            <th data-options="field:'parentId',width:220,editor:{type:'combotree',options:{url:'/api/v1/consume/tree',method:'get'}}">Parent</th>
+            <th data-options="field:'code',width:120,editor:{type:'textbox'}">Code</th>
+            <th data-options="field:'name',width:220,editor:{type:'textbox'}">Name</th>
+            <th data-options="field:'level',width:80">Level</th>
+            <th data-options="field:'sortNo',width:80,editor:{type:'numberbox'}">Sort</th>
+            <th data-options="field:'deleted',width:80,editor:{type:'checkbox',options:{on:1,off:0}}">Deleted</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+<script type="text/javascript">
+var dg = '#dg';
+var editIndex;
+$(function(){
+    $(dg).datagrid({method:'get',url:'/api/v1/consume/categories'});
+});
+function endEditing(){
+    if (editIndex == undefined){return true}
+    if ($(dg).datagrid('validateRow', editIndex)){
+        $(dg).datagrid('endEdit', editIndex);
+        editIndex = undefined;
+        return true;
+    } else {return false}
+}
+function addCategory(){
+    if (endEditing()){
+        $(dg).datagrid('appendRow',{level:2,sortNo:0,deleted:0});
+        editIndex = $(dg).datagrid('getRows').length-1;
+        $(dg).datagrid('selectRow', editIndex).datagrid('beginEdit', editIndex);
+    }
+}
+function saveCategory(){
+    if (!endEditing()) return;
+    var row = $(dg).datagrid('getSelected');
+    if (!row) return;
+    var method = row.id ? 'PUT' : 'POST';
+    var url = '/api/v1/consume/categories' + (row.id ? '/' + row.id : '');
+    $.ajax({
+        url:url,
+        type:method,
+        data:JSON.stringify(row),
+        contentType:'application/json',
+        success:function(){ $(dg).datagrid('reload'); },
+        error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }
+    });
+}
+function deleteCategory(){
+    var row = $(dg).datagrid('getSelected');
+    if (!row || !row.id) return;
+    $.ajax({
+        url:'/api/v1/consume/categories/' + row.id,
+        type:'DELETE',
+        success:function(){ $(dg).datagrid('reload'); },
+        error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }
+    });
+}
+function reloadTree(){
+    $.ajax({url:'/api/v1/consume/rules/reload',type:'POST',success:function(){}});
+}
+</script>
+</body>
+</html>

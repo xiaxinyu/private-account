@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
     <script type="text/javascript" src="/scripts/credit.js"></script>
     <script type="text/javascript" src="/datasource/creidt-datasource.js"></script>
-    <script type="text/javascript" src="/datasource/consume-datasource.js"></script>
+    
     <link rel="stylesheet" type="text/css" href="/css/default/credit/CreditBill.css">
 	<script type="text/javascript">
         require.config({
@@ -39,8 +39,8 @@
 	
 	          <span class="item_intervel">
 	          	<label>Consume type：</label> 
-	          	<select id="cmbConsume" class="easyui-combotree" data-options="data:consume_datasource,onChange:statistic" multiple 
-	          		style="width:200px;"></select>
+              <select id="cmbConsume" class="easyui-combotree" data-options="url:'/api/v1/consume/tree',method:'get',onChange:statistic" multiple 
+	          	style="width:200px;"></select>
 	          </span>
 	          
 	          <span class="item_intervel">
