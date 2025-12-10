@@ -28,8 +28,12 @@ public class ConsumeCategoryServiceImpl extends ServiceImpl<ConsumeCategoryMappe
     @Override
     public List<TreeNode> tree() {
         List<ConsumeCategory> list = listAll();
-        Map<String, List<ConsumeCategory>> byParent = list.stream().collect(Collectors.groupingBy(c -> c.getParentId() == null ? "" : c.getParentId()));
-        List<ConsumeCategory> roots = byParent.getOrDefault("", new ArrayList<>());
+        List<ConsumeCategory> roots = list.stream()
+                .filter(c -> c.getLevel() != null && c.getLevel() == 1)
+                .collect(Collectors.toList());
+        Map<String, List<ConsumeCategory>> byParent = list.stream()
+                .filter(c -> c.getLevel() != null && c.getLevel() == 2)
+                .collect(Collectors.groupingBy(c -> c.getParentId() == null ? "" : c.getParentId()));
         List<TreeNode> result = new ArrayList<>();
         for (ConsumeCategory r : roots) {
             result.add(build(r, byParent));
@@ -39,16 +43,11 @@ public class ConsumeCategoryServiceImpl extends ServiceImpl<ConsumeCategoryMappe
 
     private TreeNode build(ConsumeCategory cat, Map<String, List<ConsumeCategory>> byParent){
         TreeNode n = new TreeNode();
-        n.setId(cat.getId());
+        n.setId(cat.getCode());
         String txt = cat.getName();
         if (txt == null || txt.trim().isEmpty()) { txt = cat.getCode(); }
         n.setText(txt);
-        Map<String, ConsumeCategory> uniq = new LinkedHashMap<>();
-        List<ConsumeCategory> byId = byParent.getOrDefault(cat.getId(), Collections.emptyList());
-        List<ConsumeCategory> byCode = byParent.getOrDefault(cat.getCode(), Collections.emptyList());
-        for (ConsumeCategory c : byId) { if (c != null && c.getId() != null) { uniq.put(c.getId(), c); } }
-        for (ConsumeCategory c : byCode) { if (c != null && c.getId() != null) { uniq.put(c.getId(), c); } }
-        List<ConsumeCategory> children = new ArrayList<>(uniq.values());
+        List<ConsumeCategory> children = new ArrayList<>(byParent.getOrDefault(cat.getCode(), Collections.emptyList()));
         children.sort((a, b) -> {
             Integer sa = a.getSortNo();
             Integer sb = b.getSortNo();
@@ -59,10 +58,24 @@ public class ConsumeCategoryServiceImpl extends ServiceImpl<ConsumeCategoryMappe
         });
         if (!children.isEmpty()){
             List<TreeNode> cs = new ArrayList<>();
+            java.util.Set<String> seen = new java.util.LinkedHashSet<>();
             for (ConsumeCategory c : children){
-                cs.add(build(c, byParent));
+                if (c == null) continue;
+                if (c.getLevel() != null && c.getLevel() != 2) continue; // enforce two levels
+                if (cat.getCode() != null && cat.getCode().equals(c.getCode())) continue; // avoid self-loop by duplicate code
+                String cid = c.getCode();
+                if (cid == null || seen.contains(cid)) continue;
+                seen.add(cid);
+                TreeNode cn = new TreeNode();
+                cn.setId(cid);
+                String ct = c.getName();
+                if (ct == null || ct.trim().isEmpty()) { ct = cid; }
+                cn.setText(ct);
+                cs.add(cn);
             }
-            n.setChildren(cs);
+            if (!cs.isEmpty()){
+                n.setChildren(cs);
+            }
         }
         return n;
     }

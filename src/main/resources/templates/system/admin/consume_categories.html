@@ -22,6 +22,7 @@
     <a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addChild()">Add Child</a>
     <a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveCategory()">Save</a>
     <a class="easyui-linkbutton" data-options="iconCls:'icon-remove'" onclick="deleteCategory()">Delete</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-redo'" onclick="migrateCategory()">Migrate</a>
     <a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="reloadTree()">Reload Tree</a>
     <span id="hint" style="margin-left:12px;color:#888;">Select a node on the left to edit</span>
 </div>
@@ -65,6 +66,15 @@
             <label style="display:inline-block;width:120px;">Cascade to credits</label>
             <input id="chkCascade" type="checkbox">
         </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:inline-block;width:120px;">Migrate To</label>
+            <select id="cmbTarget" class="easyui-combotree" style="width:300px;" data-options="url:'/api/v1/consume/tree',method:'get'"></select>
+            <a class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="pickCurrentTarget()">Pick current</a>
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:inline-block;width:120px;">Delete after migrate</label>
+            <input id="chkDeleteAfter" type="checkbox" checked>
+        </div>
     </div>
 </div>
 
@@ -81,6 +91,23 @@ $(function(){
         onLoadSuccess:function(){ $(tree).tree('collapseAll'); },
         onSelect:function(node){ loadNode(node); }
     });
+        $('#cmbTarget').combotree({
+            url:'/api/v1/consume/tree',
+            method:'get',
+            loadFilter:function(data){
+                function mapNode(n){
+                    if(!n) return n;
+                    var code = n.id || '';
+                    var name = n.text || '';
+                    n.text = (code ? code : '') + (name ? ('  ' + name) : '');
+                if(n.children && n.children.length){ for(var i=0;i<n.children.length;i++){ n.children[i] = mapNode(n.children[i]); } }
+                return n;
+                }
+                if($.isArray(data)){ for(var i=0;i<data.length;i++){ data[i] = mapNode(data[i]); } } else { data = mapNode(data); }
+                return data;
+            },
+            onShowPanel:function(){ try{$('#cmbTarget').combotree('tree').tree('collapseAll');}catch(e){} }
+        });
     applyReadonlyStyle();
 });
 
@@ -142,7 +169,7 @@ function getForm(){
 
 function loadNode(node){
     currentNode = node;
-    fetchCategoryById(node.id, function(cat){ currentCat = cat; setForm(cat||{parentId:'',sortNo:0,deleted:0}); });
+    fetchCategoryByCode(node.id, function(cat){ currentCat = cat; setForm(cat||{parentId:'',sortNo:0,deleted:0}); });
 }
 
 function addRoot(){
@@ -168,6 +195,20 @@ function saveCategory(){
         categoriesCache = [];
         $(tree).tree('reload');
         if(r && r.id){ $('#txtId').textbox('setValue', r.id); }
+        try{
+            var tgt = $('#cmbTarget').combotree('getValue');
+            var deleteAfter = $('#chkDeleteAfter').is(':checked');
+            var doMigrate = cascade && tgt && method==='PUT';
+            if (doMigrate){
+                var sid = (r && r.id) ? r.id : cat.id;
+                var murl = '/api/v1/consume/categories/'+sid+'/migrate?toCode='+encodeURIComponent(tgt)+'&deleteAfter='+(deleteAfter?'true':'false')+'&cascade=true';
+                $.ajax({url:murl,type:'POST',success:function(){
+                    categoriesCache = [];
+                    $(tree).tree('reload');
+                    $.messager.show({title:'OK',msg:'Save + migrate done'});
+                },error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Migration error'); }});
+            }
+        }catch(e){}
     },error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }});
 }
 
@@ -178,13 +219,13 @@ function deleteCategory(){
     var childrenCount = 0;
     if(currentNode && currentNode.children && currentNode.children.length){ childrenCount = currentNode.children.length; }
     var msg = childrenCount>0 ? ('确认删除“'+(name||id)+'”及其'+childrenCount+'个子节点？') : ('确认删除“'+(name||id)+'”？');
-    $.messager.confirm('确认删除', msg, function(r){
+    $.messager.confirm('Confirm Delete', msg, function(r){
         if(!r) return;
         $.ajax({url:'/api/v1/consume/categories/'+id,type:'DELETE',success:function(){
             setForm({parentId:'',sortNo:0,deleted:0});
             categoriesCache = [];
             $(tree).tree('reload');
-            $.messager.show({title:'OK',msg:'删除成功'});
+            $.messager.show({title:'OK',msg:'Deleted successfully'});
         },error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }});
     });
 }
@@ -197,6 +238,34 @@ function applyReadonlyStyle(){
         $('#txtParentName').textbox('readonly', true);
         $('#txtParent').textbox('textbox').css({'background-color':'rgba(128,128,128,0.15)','color':'#666'});
         $('#txtParentName').textbox('textbox').css({'background-color':'rgba(128,128,128,0.15)','color':'#666'});
+    }catch(e){}
+}
+
+function migrateCategory(){
+    var id = $('#txtId').textbox('getValue');
+    var name = $('#txtName').textbox('getValue');
+    if(!id) return;
+    var tgt = '';
+    try{ tgt = $('#cmbTarget').combotree('getValue'); }catch(e){ tgt = ''; }
+    if(!tgt){ $.messager.alert('Tip','Please select a target category'); return; }
+    var cascade = $('#chkCascade').is(':checked');
+    var deleteAfter = $('#chkDeleteAfter').is(':checked');
+    var url = '/api/v1/consume/categories/'+id+'/migrate?toCode='+encodeURIComponent(tgt)+'&deleteAfter='+(deleteAfter?'true':'false')+'&cascade='+(cascade?'true':'false');
+    $.messager.confirm('Confirm Migration','Move credits of "'+(name||id)+'" to "'+tgt+'"'+(deleteAfter?' and delete the source category':'')+'?', function(r){
+        if(!r) return;
+        $.ajax({url:url,type:'POST',success:function(){
+            categoriesCache = [];
+            $(tree).tree('reload');
+            setForm({parentId:'',sortNo:0,deleted:0});
+            $.messager.show({title:'OK',msg:'Migration completed'});
+        },error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }});
+    });
+}
+
+function pickCurrentTarget(){
+    if(!currentNode){ $.messager.alert('Tip','Please select a category on the left'); return; }
+    try{
+        $('#cmbTarget').combotree('setValue', currentNode.id);
     }catch(e){}
 }
 </script>

@@ -149,7 +149,6 @@ $(function(){
                     var code = n.id || '';
                     var name = n.text || '';
                     n.text = (code ? code : '') + (name ? ('  ' + name) : '');
-                    n.state = 'closed';
                     if(n.children && n.children.length){
                         for(var i=0;i<n.children.length;i++){ n.children[i] = mapNode(n.children[i]); }
                     }

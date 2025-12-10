@@ -41,7 +41,6 @@ public class ConsumeCategoryAdminController {
             cat.setLevel(2);
         }
         autofillCodeAndSort(cat);
-        validateUniqueCode(cat.getCode(), null);
         String genId = buildId(cat.getLevel(), cat.getCode(), cat.getParentId());
         cat.setId(genId);
         categoryService.save(cat);
@@ -59,7 +58,6 @@ public class ConsumeCategoryAdminController {
             cat.setLevel(2);
         }
         autofillCodeAndSort(cat);
-        validateUniqueCode(cat.getCode(), id);
         String newId = buildId(cat.getLevel(), cat.getCode(), cat.getParentId());
         // Update current category, allowing primary key change
         com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<ConsumeCategory> uwCat = Wrappers.lambdaUpdate();
@@ -208,6 +206,108 @@ public class ConsumeCategoryAdminController {
         }catch(Exception e){
             log.warn("Sync all credits consume_code failed: {}", e.getMessage());
         }
+    }
+
+    @PostMapping("/{id}/migrate")
+    public CollectionResult<String> migrate(@PathVariable("id") String id,
+                                            @RequestParam(value = "toCode", required = false) String toCode,
+                                            @RequestParam(value = "deleteAfter", required = false, defaultValue = "true") boolean deleteAfter,
+                                            @RequestParam(value = "cascade", required = false, defaultValue = "true") boolean cascade){
+        ConsumeCategory src = categoryService.getById(id);
+        if (src == null){
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Source category not found: " + id);
+        }
+        String parentCode = src.getParentId() == null ? "" : src.getParentId();
+        ConsumeCategory target;
+        if (toCode != null && !toCode.trim().isEmpty()){
+            LambdaQueryWrapper<ConsumeCategory> q = Wrappers.lambdaQuery();
+            q.eq(ConsumeCategory::getCode, toCode.trim());
+            target = categoryService.getOne(q);
+            if (target == null){
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Target category not found by code: " + toCode);
+            }
+        } else {
+            LambdaQueryWrapper<ConsumeCategory> qs = Wrappers.lambdaQuery();
+            qs.eq(ConsumeCategory::getParentId, parentCode)
+              .orderByAsc(ConsumeCategory::getSortNo);
+            java.util.List<ConsumeCategory> siblings = categoryService.list(qs);
+            target = null;
+            if (siblings != null && !siblings.isEmpty()){
+                Integer srcSort = src.getSortNo() == null ? -1 : src.getSortNo();
+                for(ConsumeCategory s : siblings){
+                    if (s.getId().equals(src.getId())) continue;
+                    Integer ss = s.getSortNo() == null ? Integer.MAX_VALUE : s.getSortNo();
+                    if (ss > srcSort){ target = s; break; }
+                }
+                if (target == null){
+                    for(ConsumeCategory s : siblings){ if (!s.getId().equals(src.getId())) { target = s; break; } }
+                }
+            }
+            if (target == null){
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "No available target sibling to migrate under parent: " + parentCode);
+            }
+        }
+
+        String tgtCode = target.getCode();
+        String tgtName = target.getName();
+        int affected1 = 0, affected2 = 0, affected3 = 0, affected4 = 0, affected5 = 0, affected6 = 0;
+        if (cascade){
+            LambdaUpdateWrapper<Credit> uw1 = Wrappers.lambdaUpdate();
+            uw1.set(Credit::getConsumeID, tgtCode)
+               .set(Credit::getConsumeCode, tgtCode)
+               .set(Credit::getConsumeName, tgtName)
+               .eq(Credit::getConsumeID, src.getId());
+            affected1 = creditMapper.update(null, uw1);
+
+            LambdaUpdateWrapper<Credit> uw2 = Wrappers.lambdaUpdate();
+            uw2.set(Credit::getConsumeID, tgtCode)
+               .set(Credit::getConsumeCode, tgtCode)
+               .set(Credit::getConsumeName, tgtName)
+               .eq(Credit::getConsumeID, src.getCode());
+            affected2 = creditMapper.update(null, uw2);
+
+            LambdaUpdateWrapper<Credit> uw3 = Wrappers.lambdaUpdate();
+            uw3.set(Credit::getConsumeCode, tgtCode)
+               .set(Credit::getConsumeName, tgtName)
+               .eq(Credit::getConsumeCode, src.getCode());
+            affected3 = creditMapper.update(null, uw3);
+
+            // legacy id formats that embed code as suffix/prefix
+            LambdaUpdateWrapper<Credit> uw4 = Wrappers.lambdaUpdate();
+            uw4.set(Credit::getConsumeCode, tgtCode)
+               .set(Credit::getConsumeName, tgtName)
+               .like(Credit::getConsumeID, "/" + src.getCode());
+            affected4 = creditMapper.update(null, uw4);
+
+            LambdaUpdateWrapper<Credit> uw5 = Wrappers.lambdaUpdate();
+            uw5.set(Credit::getConsumeCode, tgtCode)
+               .set(Credit::getConsumeName, tgtName)
+               .like(Credit::getConsumeID, "-" + src.getCode());
+            affected5 = creditMapper.update(null, uw5);
+
+            // as a last resort, match by consume_name exactly
+            if (src.getName() != null && !src.getName().trim().isEmpty()){
+                LambdaUpdateWrapper<Credit> uw6 = Wrappers.lambdaUpdate();
+                uw6.set(Credit::getConsumeCode, tgtCode)
+                   .eq(Credit::getConsumeName, src.getName());
+                affected6 = creditMapper.update(null, uw6);
+            }
+        }
+        log.info("Migrate credits from src[id={},code={}] to target[code={},name={}], affected rows: byId={}, byConsumeId={}, byConsumeCodeCol={}, likeSlash={}, likeDash={}, byName={}",
+                src.getId(), src.getCode(), tgtCode, tgtName, affected1, affected2, affected3, affected4, affected5, affected6);
+
+        if (deleteAfter){
+            com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<ConsumeCategory> uwDel = Wrappers.lambdaUpdate();
+            uwDel.eq(ConsumeCategory::getId, src.getId())
+                 .set(ConsumeCategory::getDeleted, 1);
+            categoryService.update(null, uwDel);
+            log.info("Soft-deleted source category after migration: id={}, code={}", src.getId(), src.getCode());
+        }
+        syncAllCreditConsumeCodes();
+        CollectionResult<String> r = new CollectionResult<>();
+        r.setRows(java.util.Arrays.asList("ok"));
+        r.setTotal(1);
+        return r;
     }
 
     private void autofillCodeAndSort(ConsumeCategory cat){
