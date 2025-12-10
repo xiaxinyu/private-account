@@ -5,6 +5,16 @@
     <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.easyui.min.js"></script>
     <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/default/easyui.css">
     <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
+    <style>
+        .readonly-field .textbox-text{
+            background-color: rgba(128,128,128,0.15) !important;
+            color: #666 !important;
+        }
+        .textbox-readonly .textbox-text{
+            background-color: rgba(128,128,128,0.15) !important;
+            color: #666 !important;
+        }
+    </style>
 </head>
 <body class="easyui-layout">
 <div data-options="region:'north'" style="height: 40px;padding:6px 8px;">
@@ -32,12 +42,12 @@
             <input id="txtId" class="easyui-textbox" style="width:380px;" readonly>
         </div>
         <div style="margin-bottom:10px;">
-            <label style="display:inline-block;width:120px;">Parent ID</label>
-            <input id="txtParent" class="easyui-textbox" style="width:380px;" readonly>
+            <label style="display:inline-block;width:120px;">Parent Code</label>
+            <input id="txtParent" class="easyui-textbox readonly-field" style="width:380px;" data-options="readonly:true">
         </div>
         <div style="margin-bottom:10px;">
             <label style="display:inline-block;width:120px;">Parent Name</label>
-            <input id="txtParentName" class="easyui-textbox" style="width:380px;" readonly>
+            <input id="txtParentName" class="easyui-textbox readonly-field" style="width:380px;" data-options="readonly:true">
         </div>
         <div style="margin-bottom:10px;">
             <label style="display:inline-block;width:120px;">Code</label>
@@ -52,8 +62,8 @@
             <input id="numSort" class="easyui-numberbox" style="width:120px;" data-options="min:0,precision:0">
         </div>
         <div style="margin-bottom:10px;">
-            <label style="display:inline-block;width:120px;">Deleted</label>
-            <input id="chkDeleted" type="checkbox">
+            <label style="display:inline-block;width:120px;">Cascade to credits</label>
+            <input id="chkCascade" type="checkbox">
         </div>
     </div>
 </div>
@@ -68,8 +78,10 @@ $(function(){
     $(tree).tree({
         url:'/api/v1/consume/tree',
         method:'get',
+        onLoadSuccess:function(){ $(tree).tree('collapseAll'); },
         onSelect:function(node){ loadNode(node); }
     });
+    applyReadonlyStyle();
 });
 
 function fetchCategoryById(id, cb){
@@ -87,20 +99,35 @@ function fetchCategoryById(id, cb){
     }});
 }
 
+function fetchCategoryByCode(code, cb){
+    if(categoriesCache && categoriesCache.length){
+        var found = null;
+        for(var i=0;i<categoriesCache.length;i++){ if(categoriesCache[i].code===code){ found = categoriesCache[i]; break; } }
+        cb(found);
+        return;
+    }
+    $.ajax({url:'/api/v1/consume/categories',type:'GET',success:function(res){
+        categoriesCache = (res && res.rows) ? res.rows : [];
+        var found = null;
+        for(var i=0;i<categoriesCache.length;i++){ if(categoriesCache[i].code===code){ found = categoriesCache[i]; break; } }
+        cb(found);
+    }});
+}
+
 function setForm(cat){
     $('#txtId').textbox('setValue', cat && cat.id ? cat.id : '');
     $('#hidParentId').val(cat && cat.parentId ? cat.parentId : '');
     $('#txtParent').textbox('setValue', cat && cat.parentId ? cat.parentId : '');
     var parentName = '';
     if(cat && cat.parentId){
-        fetchCategoryById(cat.parentId, function(p){ $('#txtParentName').textbox('setValue', p && p.name ? p.name : ''); });
+        fetchCategoryByCode(cat.parentId, function(p){ $('#txtParentName').textbox('setValue', p && p.name ? p.name : ''); });
     } else {
         $('#txtParentName').textbox('setValue','');
     }
     $('#txtCode').textbox('setValue', cat && cat.code ? cat.code : '');
     $('#txtName').textbox('setValue', cat && cat.name ? cat.name : '');
     $('#numSort').numberbox('setValue', cat && cat.sortNo!=null ? cat.sortNo : 0);
-    $('#chkDeleted').prop('checked', cat && cat.deleted==1);
+    applyReadonlyStyle();
 }
 
 function getForm(){
@@ -109,7 +136,7 @@ function getForm(){
     var code = $('#txtCode').textbox('getValue');
     var name = $('#txtName').textbox('getValue');
     var sortNo = $('#numSort').numberbox('getValue');
-    var deleted = $('#chkDeleted').is(':checked') ? 1 : 0;
+    var deleted = (currentCat && currentCat.deleted!=null) ? currentCat.deleted : 0;
     return {id:id, parentId:parentId, code:code, name:name, sortNo: parseInt(sortNo||'0'), deleted:deleted};
 }
 
@@ -126,14 +153,17 @@ function addRoot(){
 
 function addChild(){
     if(!currentNode) return;
-    currentCat = {id:'',parentId: currentNode.id, code:'', name:'', sortNo:0, deleted:0};
+    var parentCode = currentCat && currentCat.code ? currentCat.code : '';
+    currentCat = {id:'',parentId: parentCode, code:'', name:'', sortNo:0, deleted:0};
     setForm(currentCat);
 }
 
 function saveCategory(){
     var cat = getForm();
     var method = cat.id ? 'PUT' : 'POST';
+    var cascade = $('#chkCascade').is(':checked');
     var url = '/api/v1/consume/categories' + (cat.id ? '/' + cat.id : '');
+    if (cascade && method==='PUT') { url += '?cascade=true'; }
     $.ajax({url:url,type:method,contentType:'application/json',data:JSON.stringify(cat),success:function(r){
         categoriesCache = [];
         $(tree).tree('reload');
@@ -160,6 +190,15 @@ function deleteCategory(){
 }
 
 function reloadTree(){ $(tree).tree('reload'); }
+
+function applyReadonlyStyle(){
+    try{
+        $('#txtParent').textbox('readonly', true);
+        $('#txtParentName').textbox('readonly', true);
+        $('#txtParent').textbox('textbox').css({'background-color':'rgba(128,128,128,0.15)','color':'#666'});
+        $('#txtParentName').textbox('textbox').css({'background-color':'rgba(128,128,128,0.15)','color':'#666'});
+    }catch(e){}
+}
 </script>
 
 <div data-options="region:'south'" style="height:0px;display:none;"></div>

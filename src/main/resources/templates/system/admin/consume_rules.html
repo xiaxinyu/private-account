@@ -61,6 +61,7 @@ $(function(){
     $(tree).tree({
         url:'/api/v1/consume/tree',
         method:'get',
+        onLoadSuccess:function(){ $(tree).tree('collapseAll'); },
         onSelect:function(node){
             selectedCategoryId = node.id;
             loadRules();

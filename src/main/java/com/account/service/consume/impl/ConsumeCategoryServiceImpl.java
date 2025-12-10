@@ -10,8 +10,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @org.springframework.stereotype.Service
@@ -38,8 +40,23 @@ public class ConsumeCategoryServiceImpl extends ServiceImpl<ConsumeCategoryMappe
     private TreeNode build(ConsumeCategory cat, Map<String, List<ConsumeCategory>> byParent){
         TreeNode n = new TreeNode();
         n.setId(cat.getId());
-        n.setText(cat.getName());
-        List<ConsumeCategory> children = byParent.getOrDefault(cat.getId(), new ArrayList<>());
+        String txt = cat.getName();
+        if (txt == null || txt.trim().isEmpty()) { txt = cat.getCode(); }
+        n.setText(txt);
+        Map<String, ConsumeCategory> uniq = new LinkedHashMap<>();
+        List<ConsumeCategory> byId = byParent.getOrDefault(cat.getId(), Collections.emptyList());
+        List<ConsumeCategory> byCode = byParent.getOrDefault(cat.getCode(), Collections.emptyList());
+        for (ConsumeCategory c : byId) { if (c != null && c.getId() != null) { uniq.put(c.getId(), c); } }
+        for (ConsumeCategory c : byCode) { if (c != null && c.getId() != null) { uniq.put(c.getId(), c); } }
+        List<ConsumeCategory> children = new ArrayList<>(uniq.values());
+        children.sort((a, b) -> {
+            Integer sa = a.getSortNo();
+            Integer sb = b.getSortNo();
+            if (sa == null && sb == null) return 0;
+            if (sa == null) return 1;
+            if (sb == null) return -1;
+            return Integer.compare(sa, sb);
+        });
         if (!children.isEmpty()){
             List<TreeNode> cs = new ArrayList<>();
             for (ConsumeCategory c : children){
