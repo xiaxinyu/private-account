@@ -112,12 +112,12 @@ function saveRule(){
 function deleteRule(){
     var row = $(dg).datagrid('getSelected');
     if (!row || !row.id) return;
-    var msg = '确认删除关键词 '+(row.pattern||'')+'?';
-    $.messager.confirm('确认删除', msg, function(r){
+    var msg = 'Confirm deleting keyword '+(row.pattern||'')+'?';
+    $.messager.confirm('Confirm', msg, function(r){
         if(!r) return;
         $.ajax({url:'/api/v1/consume/rules/'+row.id,type:'DELETE'}).done(function(){
             loadRules();
-            $.messager.show({title:'OK',msg:'删除成功'});
+            $.messager.show({title:'OK',msg:'Deleted successfully'});
         }).fail(function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); });
     });
 }
@@ -163,7 +163,7 @@ function onRemoveTag(value){
     var id = null;
     for(var i=0;i<currentKeywords.length;i++){ if(currentKeywords[i].pattern===value){ id = currentKeywords[i].id; break; } }
     if(!id) return;
-    $.messager.confirm('确认删除','确认删除关键词 '+value+' ?',function(r){
+    $.messager.confirm('Confirm','Confirm deleting keyword '+value+' ?',function(r){
         if(!r) return;
         $.ajax({url:'/api/v1/consume/rules/'+id,type:'DELETE'}).done(function(){ loadRules(); });
     });

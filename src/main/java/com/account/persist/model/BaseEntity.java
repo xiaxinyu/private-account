@@ -15,6 +15,7 @@ import java.util.Date;
 @Setter
 @Getter
 public class BaseEntity {
+    @TableField(exist = false)
     private Integer version = 0;
 
     @TableField(value = "createUser")

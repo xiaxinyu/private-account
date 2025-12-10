@@ -1,0 +1,147 @@
+<html>
+<head>
+    <title>== Bank Cards ==</title>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.easyui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
+</head>
+<body class="easyui-layout">
+<div data-options="region:'north'" style="height: 40px;padding:6px 8px;">
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addCard()">Add</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveCard()">Save</a>
+    <a class="easyui-linkbutton" data-options="iconCls:'icon-remove'" onclick="deleteCard()">Delete</a>
+    <span id="hint" style="margin-left:12px;color:#888;">Select a card type on the left</span>
+</div>
+
+<div data-options="region:'west'" style="width: 280px; border-right: 1px solid #ddd; padding:6px;">
+    <ul id="tree" class="easyui-tree" data-options="url:'/api/v1/cards/tree',method:'get'"></ul>
+    <div style="margin-top:6px;color:#888;">Types: Credit / Debit</div>
+    <div style="margin-top:6px;">
+        <a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="width:100%;" onclick="reloadTree()">Reload</a>
+    </div>
+ </div>
+
+<div data-options="region:'center'">
+    <table id="dg" fit="true" data-options="rownumbers:true,singleSelect:true,pagination:true,pageSize:50,idField:'id'">
+        <thead>
+        <tr>
+            <th data-options="field:'id',width:160,hidden:true">ID</th>
+            <th data-options="field:'bankCode',width:160,editor:{type:'textbox'}">Bank Code</th>
+            <th data-options="field:'cardTypeCode',width:120,editor:{type:'combobox',options:{data:[{id:'credit',text:'credit'},{id:'debit',text:'debit'}],valueField:'id',textField:'text'}}">Type</th>
+            <th data-options="field:'cardNo',width:160,editor:{type:'textbox'}">Card No</th>
+            <th data-options="field:'cardName',width:220,editor:{type:'textbox'}">Card Name</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+
+<script type="text/javascript">
+var tree = '#tree';
+var dg = '#dg';
+var editIndex;
+var selectedTypeCode = '';
+function normalizeRow(r){
+    r = r || {};
+    r.bankCode = (r.bankCode||'').trim();
+    r.cardNo = (r.cardNo||'').trim();
+    r.cardTypeCode = selectedTypeCode || r.cardTypeCode;
+    if (r.deleted == null) { r.deleted = 0; }
+    return r;
+}
+
+$(function(){
+    $(tree).tree({
+        url:'/api/v1/cards/tree',
+        method:'get',
+        onSelect:function(node){
+            var n = node;
+            if (n.children && n.children.length > 0){
+                selectedTypeCode = n.id;
+            } else {
+                var p = $(tree).tree('getParent', n.target);
+                selectedTypeCode = p ? p.id : '';
+            }
+            loadCards();
+        }
+    });
+    $(dg).datagrid({
+        method:'get',
+        url:'/api/v1/cards',
+        queryParams:{cardTypeCode:''},
+        onClickRow:function(index){
+            $(dg).datagrid('selectRow', index);
+        },
+        onDblClickRow:function(index){
+            if (endEditing()){
+                editIndex = index;
+                $(dg).datagrid('selectRow', index).datagrid('beginEdit', index);
+            }
+        },
+        onAfterEdit:function(index,row,changes){
+            var r = normalizeRow(row);
+            if(!r.bankCode || !r.cardTypeCode || !r.cardNo){
+                $.messager.alert('Warning','Bank Code / Type / Card No is required');
+                return;
+            }
+            var method = r.id ? 'PUT' : 'POST';
+            var url = '/api/v1/cards' + (r.id ? '/' + r.id : '');
+            $.ajax({url:url,type:method,contentType:'application/json',data:JSON.stringify(r)}).done(function(resp){
+                $(dg).datagrid('acceptChanges');
+                loadCards();
+                $.messager.show({title:'OK',msg:'Saved successfully'});
+            }).fail(function(xhr){
+                try{
+                    var res = JSON.parse(xhr.responseText||'{}');
+                    var msg = res.message || res.returnMessage || 'Save failed';
+                    $.messager.alert('Error', msg);
+                }catch(e){ $.messager.alert('Error','Save failed'); }
+            });
+        }
+    });
+});
+
+function loadCards(){
+    editIndex = undefined;
+    $(dg).datagrid('load', {cardTypeCode:selectedTypeCode});
+}
+
+function endEditing(){
+    if (editIndex == undefined){return true}
+    if ($(dg).datagrid('validateRow', editIndex)){
+        $(dg).datagrid('endEdit', editIndex);
+        editIndex = undefined;
+        return true;
+    } else {return false}
+}
+
+function addCard(){
+    if (!selectedTypeCode) return;
+    if (endEditing()){
+        $(dg).datagrid('appendRow',{bankCode:'',cardTypeCode:selectedTypeCode,cardNo:'',cardName:'',deleted:0});
+        editIndex = $(dg).datagrid('getRows').length-1;
+        $(dg).datagrid('selectRow', editIndex).datagrid('beginEdit', editIndex);
+    }
+}
+
+function saveCard(){
+    if (!endEditing()) return;
+}
+
+function deleteCard(){
+    var row = $(dg).datagrid('getSelected');
+    if (!row || !row.id) return;
+    var msg = 'Confirm deleting card '+(row.cardName||'')+'?';
+    $.messager.confirm('Confirm', msg, function(r){
+        if(!r) return;
+        $.ajax({url:'/api/v1/cards/'+row.id,type:'DELETE'}).done(function(){
+            loadCards();
+            $.messager.show({title:'OK',msg:'Deleted successfully'});
+        }).fail(function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); });
+    });
+}
+
+function reloadTree(){ $(tree).tree('reload'); }
+</script>
+</body>
+</html>

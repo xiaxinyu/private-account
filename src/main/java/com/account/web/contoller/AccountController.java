@@ -170,4 +170,10 @@ public class AccountController {
         log.info("************ Hello, Category Types in Private Account ************");
         return "system/admin/consume_categories";
     }
+
+    @RequestMapping("/system/admin/cards.html")
+    public String bankCards(ModelMap model) {
+        log.info("************ Hello, Bank Cards in Private Account ************");
+        return "system/admin/cards";
+    }
 }
