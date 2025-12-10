@@ -143,8 +143,31 @@ $(function(){
         $('#cmbConsume').combotree({
             url:'/api/v1/consume/tree',
             method:'get',
+            loadFilter:function(data){
+                function mapNode(n){
+                    if(!n) return n;
+                    var code = n.id || '';
+                    var name = n.text || '';
+                    n.text = (code ? code : '') + (name ? ('  ' + name) : '');
+                    n.state = 'closed';
+                    if(n.children && n.children.length){
+                        for(var i=0;i<n.children.length;i++){ n.children[i] = mapNode(n.children[i]); }
+                    }
+                    return n;
+                }
+                if($.isArray(data)){
+                    for(var i=0;i<data.length;i++){ data[i] = mapNode(data[i]); }
+                } else { data = mapNode(data); }
+                return data;
+            },
+            onLoadSuccess:function(){ try{$('#cmbConsume').combotree('tree').tree('collapseAll');}catch(e){} },
             onChange:function(){searchCredits();},
-            onShowPanel:function(){ try{$('#cmbConsume').combotree('reload','/api/v1/consume/tree');}catch(e){} }
+            onShowPanel:function(){
+                try{
+                    var treeObj = $('#cmbConsume').combotree('tree');
+                    setTimeout(function(){ try{ treeObj.tree('collapseAll'); }catch(e){} }, 0);
+                }catch(e){}
+            }
         });
         try{$('#cmbConsume').combotree('reload','/api/v1/consume/tree');}catch(e){}
     };
@@ -207,7 +230,7 @@ function updateCredit() {
 	var demoAreaEidtor = $(datagrid).datagrid('getEditor', {index:rowIndex,field:'demoArea'});
 	var demoArea = $(demoAreaEidtor.target).textbox('getText');
 	
-	var params = {'id':rowData.id, 'consumptionType':consumptionType,'demoArea':$.trim(demoArea),'consumeID':consumeID,'consumeName':consumeName};
+    var params = {'id':rowData.id, 'consumptionType':consumptionType,'demoArea':$.trim(demoArea),'consumeID':consumeID,'consumeCode':consumeID,'consumeName':consumeName};
 	credit.updateCredit(params, function(data){
     	if(data.returnCode == 'success'){
     		$(datagrid).datagrid('reload');

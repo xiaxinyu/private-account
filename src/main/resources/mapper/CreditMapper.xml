@@ -19,6 +19,7 @@
         card_type_name,
         consumption_type,
         consume_id,
+        consume_code,
         consume_name,
         demoarea,
         recordid)
@@ -39,6 +40,7 @@
             #{credit.cardTypeName,jdbcType=VARCHAR},
             #{credit.consumptionType,jdbcType=NUMERIC},
             #{credit.consumeID,jdbcType=VARCHAR},
+            #{credit.consumeCode,jdbcType=VARCHAR},
             #{credit.consumeName,jdbcType=VARCHAR},
             #{credit.demoArea,jdbcType=VARCHAR},
             #{credit.recordID,jdbcType=VARCHAR}
@@ -57,6 +59,9 @@
         </if>
         <if test="consumeID != null">
             consume_id = #{consumeID,jdbcType=VARCHAR},
+        </if>
+        <if test="consumeCode != null">
+            consume_code = #{consumeCode,jdbcType=VARCHAR},
         </if>
         <if test="consumeName != null">
             consume_name = #{consumeName,jdbcType=VARCHAR},
@@ -86,6 +91,7 @@
         <result column="card_type_name" property="cardTypeName" jdbcType="VARCHAR"/>
         <result column="consumption_type" property="consumptionType" jdbcType="NUMERIC"/>
         <result column="consume_id" property="consumeID" jdbcType="VARCHAR"/>
+        <result column="consume_code" property="consumeCode" jdbcType="VARCHAR"/>
         <result column="consume_name" property="consumeName" jdbcType="VARCHAR"/>
         <result column="demoarea" property="demoArea" jdbcType="VARCHAR"/>
     </resultMap>
@@ -93,7 +99,7 @@
     <select id="getCredits" resultMap="baseCreditResultMap">
         select * from (
         select id, card_id, bank_card_id, bank_card_name, transaction_date, bookkeeping_date, transaction_desc, balance_currency,
-        balance_money, card_type_id, card_type_name, consumption_type, consume_id, consume_name, demoarea
+        balance_money, card_type_id, card_type_name, consumption_type, consume_id, consume_code, consume_name, demoarea
         from credit where 1 = 1
         <if test="credit != null">
             <if test="credit.transactionDateStart != null">
@@ -112,7 +118,7 @@
                 and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
             </if>
             <if test="credit.consumes != null">
-                and consume_id in
+                and consume_code in
                 <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
                     #{consumeID,jdbcType=VARCHAR}
                 </foreach>
@@ -160,7 +166,7 @@
                 and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
             </if>
             <if test="credit.consumes != null">
-                and consume_id in
+                and consume_code in
                 <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
                     #{consumeID,jdbcType=VARCHAR}
                 </foreach>
@@ -201,7 +207,7 @@
                 and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
             </if>
             <if test="credit.consumes != null">
-                and consume_id in
+                and consume_code in
                 <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
                     #{consumeID,jdbcType=VARCHAR}
                 </foreach>
@@ -231,7 +237,7 @@
                 and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
             </if>
             <if test="credit.consumes != null">
-                and consume_id in
+                and consume_code in
                 <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
                     #{consumeID,jdbcType=VARCHAR}
                 </foreach>
@@ -271,7 +277,7 @@
                 and card_type_name = #{credit.cardTypeName,jdbcType=VARCHAR}
             </if>
             <if test="credit.consumes != null">
-                and consume_id in
+                and consume_code in
                 <foreach collection="credit.consumes" item="consumeID" open="(" separator="," close=")">
                     #{consumeID,jdbcType=VARCHAR}
                 </foreach>

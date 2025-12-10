@@ -39,6 +39,8 @@ public class Credit extends BaseEntity {
     private Integer consumptionType;
     @TableField(value = "consume_id")
     private String consumeID;
+    @TableField(value = "consume_code")
+    private String consumeCode;
     @TableField(value = "consume_name")
     private String consumeName;
 

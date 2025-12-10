@@ -41,6 +41,7 @@ public class ConsumeCategoryAdminController {
             cat.setLevel(2);
         }
         autofillCodeAndSort(cat);
+        validateUniqueCode(cat.getCode(), null);
         String genId = buildId(cat.getLevel(), cat.getCode(), cat.getParentId());
         cat.setId(genId);
         categoryService.save(cat);
@@ -58,6 +59,7 @@ public class ConsumeCategoryAdminController {
             cat.setLevel(2);
         }
         autofillCodeAndSort(cat);
+        validateUniqueCode(cat.getCode(), id);
         String newId = buildId(cat.getLevel(), cat.getCode(), cat.getParentId());
         // Update current category, allowing primary key change
         com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<ConsumeCategory> uwCat = Wrappers.lambdaUpdate();
@@ -81,6 +83,7 @@ public class ConsumeCategoryAdminController {
                 java.util.List<ConsumeCategory> children = categoryService.list(qChildren);
                 int affectedChildren = 0;
                 for(ConsumeCategory ch : children){
+                    String oldChildId = ch.getId();
                     String childCode = ch.getCode();
                     String updatedChildCode = childCode;
                     if (childCode != null && childCode.startsWith(oldCode + "-")){
@@ -95,6 +98,14 @@ public class ConsumeCategoryAdminController {
                           .set(ConsumeCategory::getLevel, 2);
                     boolean ok = categoryService.update(null, uwChild);
                     if (ok) affectedChildren++;
+
+                    if (Boolean.TRUE.equals(cascade)){
+                        LambdaUpdateWrapper<Credit> uwChildCredit = Wrappers.lambdaUpdate();
+                        uwChildCredit.set(Credit::getConsumeCode, updatedChildCode)
+                                     .set(Credit::getConsumeName, ch.getName())
+                                     .eq(Credit::getConsumeID, oldChildId);
+                        creditMapper.update(null, uwChildCredit);
+                    }
                 }
                 log.info("Cascade update child categories: parentCode {} -> {}, affectedChildren={} (child codes adjusted if prefixed)", oldCode, newParentCode, affectedChildren);
             }
@@ -104,13 +115,33 @@ public class ConsumeCategoryAdminController {
             String newCode = cat.getCode();
             String newName = cat.getName();
             if (oldCode != null && newCode != null){
+                // 1) Update credits linked by previous category identifier (path variable id)
+                LambdaUpdateWrapper<Credit> uwById = Wrappers.lambdaUpdate();
+                uwById.set(Credit::getConsumeCode, newCode)
+                      .set(Credit::getConsumeName, newName)
+                      .eq(Credit::getConsumeID, id);
+                int affectedById = creditMapper.update(null, uwById);
+
+                // 2) Update credits linked by old code
                 LambdaUpdateWrapper<Credit> uw = Wrappers.lambdaUpdate();
                 uw.set(Credit::getConsumeID, newCode)
+                  .set(Credit::getConsumeCode, newCode)
                   .set(Credit::getConsumeName, newName)
                   .eq(Credit::getConsumeID, oldCode);
-                int affected = creditMapper.update(null, uw);
-                log.info("Cascade update credits: consume_id {} -> {}, consume_name -> {}. affectedRows={}", oldCode, newCode, newName, affected);
+                int affectedByCode = creditMapper.update(null, uw);
+
+                // 3) Update credits where consume_code equals old code (defensive)
+                LambdaUpdateWrapper<Credit> uwByCodeCol = Wrappers.lambdaUpdate();
+                uwByCodeCol.set(Credit::getConsumeCode, newCode)
+                           .set(Credit::getConsumeName, newName)
+                           .eq(Credit::getConsumeCode, oldCode);
+                int affectedByCodeCol = creditMapper.update(null, uwByCodeCol);
+
+                log.info("Cascade update credits: id={}, oldCode {} -> newCode {}, affectedById={}, affectedByConsumeId={}, affectedByConsumeCodeCol={}",
+                        id, oldCode, newCode, affectedById, affectedByCode, affectedByCodeCol);
             }
+            // Global sync after cascade to guarantee credit.consume_code aligns with category.code
+            syncAllCreditConsumeCodes();
         }
         cat.setId(newId);
         return cat;
@@ -134,6 +165,7 @@ public class ConsumeCategoryAdminController {
         if (cat != null && cat.getCode() != null){
             LambdaUpdateWrapper<Credit> uw = Wrappers.lambdaUpdate();
             uw.set(Credit::getConsumeID, (String) null)
+              .set(Credit::getConsumeCode, (String) null)
               .set(Credit::getConsumeName, (String) null)
               .eq(Credit::getConsumeID, cat.getCode());
             int affected = creditMapper.update(null, uw);
@@ -144,6 +176,38 @@ public class ConsumeCategoryAdminController {
     private String buildId(Integer level, String code, String parentId){
         String c = (code == null) ? "" : code.trim();
         return c;
+    }
+
+    private void validateUniqueCode(String code, String currentId){
+        String c = (code == null) ? "" : code.trim();
+        if (c.isEmpty()) { return; }
+        LambdaQueryWrapper<ConsumeCategory> qw = Wrappers.lambdaQuery();
+        qw.eq(ConsumeCategory::getCode, c);
+        if (currentId != null && !currentId.trim().isEmpty()){
+            qw.ne(ConsumeCategory::getId, currentId.trim());
+        }
+        long cnt = categoryService.count(qw);
+        if (cnt > 0){
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Duplicate code: " + c + ", please choose another code.");
+        }
+    }
+
+    private void syncAllCreditConsumeCodes(){
+        try{
+            List<ConsumeCategory> all = categoryService.listAll();
+            int total = 0;
+            for(ConsumeCategory cc : all){
+                if (cc == null || cc.getId() == null || cc.getCode() == null) continue;
+                LambdaUpdateWrapper<Credit> uw = Wrappers.lambdaUpdate();
+                uw.set(Credit::getConsumeCode, cc.getCode())
+                  .eq(Credit::getConsumeID, cc.getId());
+                total += creditMapper.update(null, uw);
+            }
+            log.info("Sync all credits consume_code done. affectedRows={}", total);
+        }catch(Exception e){
+            log.warn("Sync all credits consume_code failed: {}", e.getMessage());
+        }
     }
 
     private void autofillCodeAndSort(ConsumeCategory cat){
