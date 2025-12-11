@@ -10,5 +10,6 @@ import java.util.List;
 public class TreeNode {
     private String id;
     private String text;
+    private String state;
     private List<TreeNode> children;
 }

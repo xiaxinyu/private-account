@@ -171,6 +171,7 @@ public class CardNumberController {
                 return n;
             }).collect(Collectors.toList());
             p.setChildren(childNodes);
+            if (!childNodes.isEmpty()) { p.setState("closed"); }
             parents.add(p);
         }
         return parents;

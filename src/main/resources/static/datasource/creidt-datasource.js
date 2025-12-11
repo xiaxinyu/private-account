@@ -17,6 +17,9 @@ var credit_datasource = {
 	} , {
 		id : 5,
 		text : "工资"
+	} , {
+		id : 6,
+		text : "贷款"
 	}],
 
 	cardTypes : [ {

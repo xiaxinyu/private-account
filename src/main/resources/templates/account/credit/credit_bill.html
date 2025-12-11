@@ -69,7 +69,7 @@
             <th data-options="field:'consumptionType',width:110,align:'center',formatter:fmt.consumptionType,editor:{type:'combobox',options:{valueField:'id',textField:'text',data:credit_datasource.consumptionType}}">
                 Transaction Type
             </th>
-            <th data-options="field:'consumeCode',width:220,align:'left',formatter:function(v,r){return r.consumeName||'';},editor:{type:'combotree',options:{url:'/api/v1/consume/tree',method:'get'}}">
+            <th data-options="field:'consumeCode',width:220,align:'left',formatter:function(v,r){return r.consumeName||'';},editor:{type:'combotree',options:{url:'/api/v1/consume/tree',method:'get',loadFilter:function(data){function mapNode(n){if(!n) return n;var code=n.id||'';var name=n.text||'';n.text=(code?code:'')+(name?('  '+name):'');if(n.children&&n.children.length){for(var i=0;i<n.children.length;i++){n.children[i]=mapNode(n.children[i]);}}return n;}if($.isArray(data)){for(var i=0;i<data.length;i++){data[i]=mapNode(data[i]);}}else{data=mapNode(data);}return data;},onShowPanel:function(){try{$(this).combotree('tree').tree('collapseAll');}catch(e){}},onLoadSuccess:function(){try{$(this).combotree('tree').tree('collapseAll');}catch(e){}}}}">
                 Category
             </th>
             <th data-options="field:'demoArea',width:420,align:'left',editor:{type:'textbox'}">Remarks</th>

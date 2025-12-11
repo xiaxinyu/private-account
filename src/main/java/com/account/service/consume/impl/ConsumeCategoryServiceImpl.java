@@ -85,6 +85,7 @@ public class ConsumeCategoryServiceImpl extends ServiceImpl<ConsumeCategoryMappe
             }
             if (!cs.isEmpty()){
                 n.setChildren(cs);
+                n.setState("closed");
             }
         }
         return n;
