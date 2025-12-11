@@ -5,20 +5,14 @@
     <script type="text/javascript" src="/plugins/jquery-easyui-1.11.4/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="/scripts/app-plugin.js"></script>
     <script type="text/javascript" src="/scripts/date.js"></script>
-    <script type="text/javascript" src="/plugins/echarts/echarts-2.2.7.js"></script>
+    <script type="text/javascript" src="/plugins/echarts-6.0.0/echarts.min.js"></script>
     <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/default/easyui.css">
     <link rel="stylesheet" type="text/css" href="/plugins/jquery-easyui-1.11.4/themes/icon.css">
     <script type="text/javascript" src="/scripts/credit.js"></script>
     <script type="text/javascript" src="/datasource/creidt-datasource.js"></script>
     
     <link rel="stylesheet" type="text/css" href="/css/default/credit/CreditBill.css">
-    <script type="text/javascript">
-        require.config({
-            paths: {
-                echarts:'/plugins/echarts/dist'
-            }
-        });
-    </script>
+    <script type="text/javascript"></script>
 </head>
 <body class="easyui-layout">
 <div data-options="region:'north'" style="height: 32px">
@@ -54,7 +48,7 @@
     </div>
 </div>
 <div id="chartArea" data-options="region:'center',border:false">
-    <div id="main"></div>
+    <div id="main" style="width:100%; height: 320px;"></div>
 </div>
 
 <div id="dialog" style='display: none;'>
@@ -74,46 +68,25 @@
 </body>
 <script type="text/javascript">
 $(function(){
-	$('#main').height($('#chartArea').height()-10);
-	statistic();
-	getCredits('monday');
+    $.parser.onComplete = function(){
+        $('#main').height($('#chartArea').height()-10);
+        statistic();
+        getCredits('monday');
+    };
 });
 
 function getParams(){
-	//Transaction date
-	var dateStart = $('#dateStart').datebox('getValue');
-	var dateEnd = $('#dateEnd').datebox('getValue');
-	if(dateStart!=null && dateStart!=''){
-		dateStart = $.trim(dateStart);    
-	}else{
-		dateStart = '';
-	}
-	if(dateEnd!=null && dateEnd != ''){
-		dateEnd = $.trim(dateEnd);    
-	}else{
-		dateEnd = '';
-	}
-	
-	//Card type
-	var cardtype = $('#cmbCardTypes').combobox('getValue');
-	if(cardtype!=null && cardtype!="" && cardtype != "0"){
-		cardtype = $.trim(cardtype);
-	}else{
-		cardtype = '';
-	}
-	
-	//Consume type
-	var consume = $('#cmbConsume').combotree('getValues');
-	if(consume!=null && consume!=""){
-		consume = $.trim(consume.join(','));
-	}else{
-		consume = '';
-	}
-	
-	//demo
-	var demoArea = $.trim($('#txtDemo').textbox('getValue'));
-	var params = {'transactionDateStartStr':dateStart,'transactionDateEndStr':dateEnd,'consumptionType':'1','consumeID':consume,'cardTypeName':cardtype,'demoArea':demoArea};
-	return params;
+    function safeDateboxValue(sel){ var jq=$(sel); try{ var v=jq.datebox('getValue'); if(v!=null) return $.trim(v);}catch(e){} var v2=jq.val(); return v2?$.trim(v2):''; }
+    function safeComboboxValue(sel){ var jq=$(sel); try{ var v=jq.combobox('getValue'); if(v!=null) return $.trim(v);}catch(e){} var v2=jq.val(); return v2?$.trim(v2):''; }
+    function safeCombotreeValues(sel){ var jq=$(sel); try{ var arr=jq.combotree('getValues'); if(arr&&arr.length) return $.trim(arr.join(',')); }catch(e){} var v2=jq.val(); return v2?$.trim(v2):''; }
+    var dateStart = safeDateboxValue('#dateStart');
+    var dateEnd = safeDateboxValue('#dateEnd');
+    var cardtype = safeComboboxValue('#cmbCardTypes');
+    if(cardtype==='0') cardtype='';
+    var consume = safeCombotreeValues('#cmbConsume');
+    var demoArea = (function(){ var jq=$('#txtDemo'); try{ return $.trim(jq.textbox('getValue')); }catch(e){ return $.trim(jq.val()||''); } })();
+    var params = {'transactionDateStartStr':dateStart,'transactionDateEndStr':dateEnd,'consumptionType':'1','consumeID':consume,'cardTypeName':cardtype,'demoArea':demoArea};
+    return params;
 }
 
 function statistic() {
@@ -153,18 +126,15 @@ function show(data){
 }
 
 function render(weekNames,rowDatas){
-	// 使用
-	require([ 'echarts', 'echarts/chart/pie' , 'echarts/chart/funnel'
-	], function(ec) {
-		// 基于准备好的dom，初始化echarts图表
-		var myChart = ec.init(document.getElementById('main'));
+        ensureMainSize();
+        var myChart = echarts.init(document.getElementById('main'));
 
-		option = {
-		    title : {
-		        text: 'Consume Pie Statistic',
-		        subtext: 'Money',
-		        x:'center'
-		    },
+        var option = {
+            title : {
+                text: 'Consume Pie Statistic',
+                subtext: 'Money',
+                x:'center'
+            },
 		    tooltip : {
 		        trigger: 'item',
 		        formatter: "{a} <br/>{b} : {c} ({d}%)"
@@ -194,8 +164,7 @@ function render(weekNames,rowDatas){
 		            restore : {show: true},
 		            saveAsImage : {show: true}
 		        }
-		    },
-		    calculable : true,
+            },
 		    series : [
 		        {
 		            name:'Week',
@@ -207,11 +176,18 @@ function render(weekNames,rowDatas){
 		    ]
 		};
 		
-		myChart.setOption(option);
-		myChart.on('click', function (param) {
-			openDialog(param.name);
-		});
-	});
+        myChart.setOption(option);
+        myChart.on('click', function (param) {
+            openDialog(param.name);
+        });
+}
+
+function ensureMainSize(){
+    var $area = $('#chartArea');
+    var $main = $('#main');
+    var h = $area.height();
+    if(!h || h <= 40){ h = $(window).height() - 160; }
+    if(h && h > 100){ $main.height(h - 20); }
 }
 
 </script>
