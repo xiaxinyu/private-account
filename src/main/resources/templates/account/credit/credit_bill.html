@@ -69,7 +69,7 @@
             <th data-options="field:'consumptionType',width:110,align:'center',formatter:fmt.consumptionType,editor:{type:'combobox',options:{valueField:'id',textField:'text',data:credit_datasource.consumptionType}}">
                 Transaction Type
             </th>
-            <th data-options="field:'consumeID',width:220,align:'left',formatter:function(v,r){return r.consumeName||'';},editor:{type:'combotree',options:{url:'/api/v1/consume/tree',method:'get'}}">
+            <th data-options="field:'consumeCode',width:220,align:'left',formatter:function(v,r){return r.consumeName||'';},editor:{type:'combotree',options:{url:'/api/v1/consume/tree',method:'get'}}">
                 Category
             </th>
             <th data-options="field:'demoArea',width:420,align:'left',editor:{type:'textbox'}">Remarks</th>
@@ -222,14 +222,24 @@ function updateCredit() {
 	var consumptionTypeEidtor = $(datagrid).datagrid('getEditor', {index:rowIndex,field:'consumptionType'});
 	var consumptionType = $(consumptionTypeEidtor.target).combobox('getValue');
 	
-	var consumeEidtor = $(datagrid).datagrid('getEditor', {index:rowIndex,field:'consumeID'});
-	var consumeID = $(consumeEidtor.target).combotree('getValue');
-	var consumeName = $(consumeEidtor.target).combotree('getText');
+    var consumeEidtor = $(datagrid).datagrid('getEditor', {index:rowIndex,field:'consumeCode'});
+    var consumeCode = $(consumeEidtor.target).combotree('getValue');
+    var consumeText = $(consumeEidtor.target).combotree('getText');
+    var consumeName = (function(){
+        var t = $.trim(consumeText||'');
+        var c = $.trim(consumeCode||'');
+        if(!t) return '';
+        if(c && t.indexOf(c) === 0){
+            var s = t.substring(c.length);
+            return $.trim(s);
+        }
+        return t;
+    })();
 	
 	var demoAreaEidtor = $(datagrid).datagrid('getEditor', {index:rowIndex,field:'demoArea'});
 	var demoArea = $(demoAreaEidtor.target).textbox('getText');
 	
-    var params = {'id':rowData.id, 'consumptionType':consumptionType,'demoArea':$.trim(demoArea),'consumeID':consumeID,'consumeCode':consumeID,'consumeName':consumeName};
+    var params = {'id':rowData.id, 'consumptionType':consumptionType,'demoArea':$.trim(demoArea),'consumeCode':consumeCode,'consumeName':consumeName};
 	credit.updateCredit(params, function(data){
     	if(data.returnCode == 'success'){
     		$(datagrid).datagrid('reload');

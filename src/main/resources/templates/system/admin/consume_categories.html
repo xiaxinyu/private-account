@@ -73,7 +73,7 @@
         </div>
         <div style="margin-bottom:10px;">
             <label style="display:inline-block;width:120px;">Delete after migrate</label>
-            <input id="chkDeleteAfter" type="checkbox" checked>
+            <input id="chkDeleteAfter" type="checkbox">
         </div>
     </div>
 </div>
@@ -195,21 +195,13 @@ function saveCategory(){
         categoriesCache = [];
         $(tree).tree('reload');
         if(r && r.id){ $('#txtId').textbox('setValue', r.id); }
-        try{
-            var tgt = $('#cmbTarget').combotree('getValue');
-            var deleteAfter = $('#chkDeleteAfter').is(':checked');
-            var doMigrate = cascade && tgt && method==='PUT';
-            if (doMigrate){
-                var sid = (r && r.id) ? r.id : cat.id;
-                var murl = '/api/v1/consume/categories/'+sid+'/migrate?toCode='+encodeURIComponent(tgt)+'&deleteAfter='+(deleteAfter?'true':'false')+'&cascade=true';
-                $.ajax({url:murl,type:'POST',success:function(){
-                    categoriesCache = [];
-                    $(tree).tree('reload');
-                    $.messager.show({title:'OK',msg:'Save + migrate done'});
-                },error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Migration error'); }});
-            }
-        }catch(e){}
-    },error:function(xhr){ $.messager.alert('Error', xhr.responseText || 'Error'); }});
+        $.messager.show({title:'OK',msg:'Saved successfully'});
+    },error:function(xhr){
+        var msg = xhr && xhr.responseText ? xhr.responseText : 'Error';
+        var isDup = (xhr && (xhr.status===409)) || (msg && (msg.indexOf('Duplicate')>=0 || msg.indexOf('重复')>=0));
+        if(isDup){ $.messager.alert('Warning', 'Duplicate id/code, please change'); }
+        else { $.messager.alert('Error', msg); }
+    }});
 }
 
 function deleteCategory(){
@@ -248,6 +240,11 @@ function migrateCategory(){
     var tgt = '';
     try{ tgt = $('#cmbTarget').combotree('getValue'); }catch(e){ tgt = ''; }
     if(!tgt){ $.messager.alert('Tip','Please select a target category'); return; }
+    var srcCode = $('#txtCode').textbox('getValue');
+    if(srcCode && tgt && $.trim(srcCode) === $.trim(tgt)){
+        $.messager.alert('Warning','Source and target are the same; nothing to migrate');
+        return;
+    }
     var cascade = $('#chkCascade').is(':checked');
     var deleteAfter = $('#chkDeleteAfter').is(':checked');
     var url = '/api/v1/consume/categories/'+id+'/migrate?toCode='+encodeURIComponent(tgt)+'&deleteAfter='+(deleteAfter?'true':'false')+'&cascade='+(cascade?'true':'false');
