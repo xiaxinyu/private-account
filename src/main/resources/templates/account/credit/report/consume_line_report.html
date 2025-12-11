@@ -15,7 +15,7 @@
     <script type="text/javascript"></script>
 </head>
 <body class="easyui-layout">
-<div data-options="region:'north'" style="height: 32px">
+<div data-options="region:'north'" style="height: 52px">
     <div style="margin-top: 3px;">
 			<span class="item_intervel">
 	           	<label>Transaction date:</label> 
@@ -73,6 +73,7 @@ $(function(){
         pieX = $('#chartArea').width() - pieX;
         statistic();
     };
+    try{ statistic(); }catch(e){ if(window.console){ console.error('statistic call failed:', e); } }
 });
 
 function getParams(){
@@ -91,7 +92,7 @@ function getParams(){
 
 function statistic() {
 	var params = getParams();
-	credit.consumeReport(params, show);
+	credit.consumeReport(params, show, ajaxError);
 }
 
 
@@ -99,7 +100,7 @@ function statistic() {
 
 <script type="text/javascript">
 function show(data){
-	if(data.returnCode == 'success'){
+	if(data && (data.returnCode == 'success' || data.returnCode == 20000)){
 		var json = null;
 		try{
 			json = $.parseJSON(data.returnMessage);
@@ -125,7 +126,15 @@ function show(data){
 		} else {
 			app.messager.show({title : 'Fail', msg : data.returnMessage});
 		}
+	} else {
+		var msg = data && data.returnMessage ? data.returnMessage : 'Request failed';
+		app.messager.show({title:'Fail', msg: msg});
 	}
+}
+
+function ajaxError(xhr){
+    var msg = (xhr && xhr.responseText) ? xhr.responseText : 'Network error';
+    app.messager.show({title:'Fail', msg: msg});
 }
 
 function render(keys,values,markPoints){
@@ -138,45 +147,50 @@ function render(keys,values,markPoints){
                 subtext: 'Money',
                 x:'left'
             },
-			tooltip : {
-				trigger : 'axis'
-			},
-			legend : {
-				data : [ 'Money' ]
-			},
-			toolbox : {
-				show : true,
-				feature : {
-					dataView : {
-						show : true,
-						readOnly : false
-					},
-					magicType : {
-						show : true,
-						type : [ 'line', 'bar' ]
-					},
-					restore : {
-						show : true
-					},
-					saveAsImage : {
-						show : true
-					}
-				}
+            tooltip : {
+                trigger : 'axis'
             },
-			xAxis : [ {
-				type : 'category',
-				boundaryGap : false,
-				data : keys,
-				axisLabel: {
-		            rotate: 60,
-		            textStyle : {
-		            	color : '#0000FF',
-		            	align : 'left',
-		            	fontWeight : 'bold',
-		            	fontFamily : 'Arial'
-		            }
-		        }
-			} ],
+            legend : {
+                data : [ 'Money' ]
+            },
+            toolbox : {
+                show : true,
+                feature : {
+                    dataView : {
+                        show : true,
+                        readOnly : false
+                    },
+                    magicType : {
+                        show : true,
+                        type : [ 'line', 'bar' ]
+                    },
+                    restore : {
+                        show : true
+                    },
+                    saveAsImage : {
+                        show : true
+                    }
+                }
+            },
+            dataZoom: [
+                {type: 'slider', start: 0, end: 50},
+                {type: 'inside'}
+            ],
+            xAxis : [ {
+                type : 'category',
+                boundaryGap : false,
+                data : keys,
+                axisLabel: {
+                    rotate: 45,
+                    hideOverlap: true,
+                    textStyle : {
+                        color : '#0000FF',
+                        align : 'left',
+                        fontWeight : 'bold',
+                        fontFamily : 'Arial'
+                    }
+                }
+            } ],
 			grid: {
 			    x: 40,
 			    x2: 20,
@@ -189,14 +203,15 @@ function render(keys,values,markPoints){
 					formatter : '¥{value}'
 				}
 			} ],
-			series : [ {
-				type : 'line',
-				data : values,
-				itemStyle : {
-					normal: {
-	                	color: '#8FBC8F'
-	               	}
-				},
+            series : [ {
+                type : 'line',
+                smooth: true,
+                data : values,
+                itemStyle : {
+                    normal: {
+                        color: '#8FBC8F'
+                    }
+                },
 				markPoint : {
 					itemStyle: {
 	                   normal: {

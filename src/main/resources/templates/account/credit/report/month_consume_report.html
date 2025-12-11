@@ -14,7 +14,7 @@
     <script type="text/javascript"></script>
 </head>
 <body class="easyui-layout">
-<div data-options="region:'north'" style="height: 32px">
+<div data-options="region:'north'" style="height: 52px">
     <div style="margin-top: 3px;">
 			<span class="item_intervel">
 	           	<label>Year:</label> 
@@ -110,54 +110,66 @@ function statistic() {
 </script>
 
 <script type="text/javascript">
-function show(data){
-	if(data.returnCode == 'success'){
-		var json = null;
-		try{
-			json = $.parseJSON(data.returnMessage);
-		}catch(e){
-			json = null;
-			app.messager.show({title:'Fail', msg: 'Parse return data fail!'});
-			return;
-		}
-		if(json != null){
-			var rows = json;
-			var keys = new Array();
-			var values = new Array();
-			var markPoints = new Array();
-			for (var i = 0; i < rows.length; i++) {
-				var row = rows[i];
-				var key = row.key;
-				var value = parseFloat(row.value);
-				keys.push(key);
-				values.push(value);
-				markPoints.push({name: key, value: value ,xAxis: i, yAxis: value});
+ function show(data){
+		if(data.returnCode == 'success'){
+			var json = null;
+			try{
+				json = $.parseJSON(data.returnMessage);
+			}catch(e){
+				json = null;
+				app.messager.show({title:'Fail', msg: 'Parse return data fail!'});
+				return;
 			}
-			render(keys,values,markPoints);
-		} else {
-			app.messager.show({title : 'Fail', msg : data.returnMessage});
+			if(json != null){
+				var rows = json;
+				var keys = [];
+				var values = [];
+				var markPoints = [];
+				var monthCodes = [];
+				for (var i = 0; i < rows.length; i++) {
+					var row = rows[i];
+					var key = row.key;
+					var value = parseFloat(row.value);
+					var display = monthNameCn(key);
+					keys.push(display);
+					values.push(value);
+					markPoints.push({name: display, value: value ,xAxis: i, yAxis: value});
+					monthCodes.push(getMonthCodeByName(key));
+				}
+				render(keys,values,markPoints,monthCodes);
+			} else {
+				app.messager.show({title : 'Fail', msg : data.returnMessage});
+			}
 		}
 	}
-}
 
-function render(keys,values,markPoints){
+function render(keys,values,markPoints,monthCodes){
         ensureMainSize();
         var myChart = echarts.init(document.getElementById('main'));
+
+        var avg = (function(){ var t=0; for(var i=0;i<values.length;i++){ t += values[i]||0; } return values.length?Math.round(t/values.length):0; })();
+        var yearSel = (function(){ try{ return $.trim($('#cmbYear').combobox('getValue')||''); }catch(e){ return $.trim($('#cmbYear').val()||''); }})();
 
         var option = {
             title : {
                 text: 'Consume Line Statistic',
-                subtext: 'Money',
+                subtext: 'Money · Year ' + (yearSel||'') + (avg?(' · Avg ¥'+avg):''),
                 x:'left'
             },
 			tooltip : {
-				trigger : 'axis'
+				trigger : 'axis',
+				formatter: function(params){
+				    var p = params && params.length? params[0]: params;
+				    var name = p.name;
+				    var val = p.value;
+				    return '月份：' + name + '<br/>金额：¥' + val;
+				}
 			},
 			legend : {
-				data : [ 'Money' ]
+				data : [ '月度总额' ]
 			},
 			toolbox : {
-				show : true,
+                show : true,
 				feature : {
 					dataView : {
 						show : true,
@@ -180,15 +192,15 @@ function render(keys,values,markPoints){
 				boundaryGap : false,
 				data : keys,
 				axisLabel: {
-		            rotate: 60,
-		            textStyle : {
-		            	color : '#0000FF',
-		            	align : 'left',
-		            	fontWeight : 'bold',
-		            	fontFamily : 'Arial'
-		            }
-		        }
-			} ],
+			            rotate: 0,
+			            textStyle : {
+			            	color : '#0000FF',
+			            	align : 'left',
+			            	fontWeight : 'bold',
+			            	fontFamily : 'Arial'
+			            }
+			        }
+				} ],
 			grid: {
 			    x: 40,
 			    x2: 20,
@@ -203,31 +215,33 @@ function render(keys,values,markPoints){
 			} ],
 			series : [ {
 				type : 'line',
+				name : '月度总额',
 				data : values,
 				itemStyle : {
 					normal: {
-	                	color: '#8FBC8F'
-	               	}
-				},
+			        	color: '#8FBC8F'
+			        	}
+				}
+				,
 				markPoint : {
 					itemStyle: {
-	                   normal: {
-	                	   color: '#2E8B57',
-	                       borderColor: '#4876FF',
-	                       borderWidth: 1
-	                   }
-	                },
+				       normal: {
+				    	   color: '#2E8B57',
+				           borderColor: '#4876FF',
+				           borderWidth: 1
+				       }
+			        },
 					symbolSize : 16,
 					data : markPoints
 				},
 				markLine : {
-	                itemStyle : {
-	                    normal: {
-	                        color:'#FF0000',
-	                        borderWidth:1,
-	                        borderColor:'rgba(255,0,0,1)'
-	                    }
-	                },
+			        itemStyle : {
+			            normal: {
+			                color:'#FF0000',
+			                borderWidth:1,
+			                borderColor:'rgba(255,0,0,1)'
+			            }
+			        },
 					data : [ {
 						type : 'average',
 						name : 'Average'
@@ -237,7 +251,11 @@ function render(keys,values,markPoints){
 		};
         myChart.setOption(option);
         myChart.on('click', function (param) {
+            var idx = (typeof param.dataIndex === 'number') ? param.dataIndex : 0;
+            var code = (monthCodes && monthCodes[idx]) ? monthCodes[idx] : getMonthCodeByName(param.name);
+            if(!code){ var n = idx+1; code = (n<10?('0'+n):(''+n)); }
             openDialog(param.name);
+            getCredits(code);
         });
 }
 
@@ -247,6 +265,31 @@ function ensureMainSize(){
     var h = $area.height();
     if(!h || h <= 40){ h = $(window).height() - 160; }
     if(h && h > 100){ $main.height(h - 40); }
+}
+
+function monthNameCn(en){
+    var map = {
+        'Janunary':'一月','January':'一月','February':'二月','March':'三月','April':'四月','May':'五月','June':'六月','July':'七月','August':'八月','September':'九月','October':'十月','November':'十一月','December':'十二月'
+    };
+    return map[en]||en;
+}
+
+function getMonthCodeByName(en){
+    var map = {
+        'Janunary':'01','January':'01','一月':'01',
+        'February':'02','二月':'02',
+        'March':'03','三月':'03',
+        'April':'04','四月':'04',
+        'May':'05','五月':'05',
+        'June':'06','六月':'06',
+        'July':'07','七月':'07',
+        'August':'08','八月':'08',
+        'September':'09','九月':'09',
+        'October':'10','十月':'10',
+        'November':'11','十一月':'11',
+        'December':'12','十二月':'12'
+    };
+    return map[en]||'';
 }
 
 </script>
@@ -268,10 +311,8 @@ function openDialog(consumeName){
 		    cache: false,    
 		    modal: true   
 		});
-		getCredits(consumeName);
 		dialogFlag = true;
 	}else{
-		refreshCredits(consumeName);
 		$(dialog).dialog({title:title});
 		$(dialog).dialog('refresh');  
 	}

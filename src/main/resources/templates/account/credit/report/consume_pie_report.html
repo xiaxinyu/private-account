@@ -15,7 +15,7 @@
     <script type="text/javascript"></script>
 </head>
 <body class="easyui-layout">
-<div data-options="region:'north'" style="height: 32px">
+<div data-options="region:'north'" style="height: 52px">
     <div style="margin-top: 3px;">
 			<span class="item_intervel">
 	           	<label>Transaction date:</label> 
@@ -91,14 +91,14 @@ function getParams(){
 
 function statistic() {
 	var params = getParams();
-	credit.consumeReport(params, show);
+	credit.consumeReport(params, show, ajaxError);
 }
 
 </script>
 
 <script type="text/javascript">
 function show(data){
-	if(data.returnCode == 'success'){
+	if(data && (data.returnCode == 'success' || data.returnCode == 20000)){
 		var json = null;
 		try{
 			json = $.parseJSON(data.returnMessage);
@@ -109,30 +109,45 @@ function show(data){
 		}
 		if(json != null){
 			var rows = json;
-			var weekNames = new Array();
-			var rowDatas = new Array();
+			var list = [];
 			for (var i = 0; i < rows.length; i++) {
-				var row = rows[i];
-				var key = row.key;
-				var value = parseFloat(row.value);
-				weekNames.push(key);
-				rowDatas.push({name: key, value: value});
+				var r = rows[i];
+				var v = parseFloat(r.value);
+				list.push({name: r.key, value: isNaN(v)?0:v});
 			}
-			render(weekNames,rowDatas);
+			list.sort(function(a,b){ return b.value - a.value; });
+			var topN = 12;
+			var agg = [];
+			var others = 0;
+			for(var i=0;i<list.length;i++){
+				if(i<topN){ agg.push(list[i]); } else { others += list[i].value; }
+			}
+			if(list.length>topN && others>0){ agg.push({name:'Others', value: others}); }
+			var names = []; for(var i=0;i<agg.length;i++){ names.push(agg[i].name); }
+			var subtitle = list.length>topN ? 'Money · Top12+Others · Legend scroll' : 'Money';
+			render(names, agg, subtitle);
 		} else {
 			app.messager.show({title : 'Fail', msg : data.returnMessage});
 		}
+	} else {
+		var msg = data && data.returnMessage ? data.returnMessage : 'Request failed';
+		app.messager.show({title:'Fail', msg: msg});
 	}
 }
 
-function render(weekNames,rowDatas){
+function ajaxError(xhr){
+    var msg = (xhr && xhr.responseText) ? xhr.responseText : 'Network error';
+    app.messager.show({title:'Fail', msg: msg});
+}
+
+function render(weekNames,rowDatas,subtitle){
         ensureMainSize();
         var myChart = echarts.init(document.getElementById('main'));
 
         var option = {
             title : {
                 text: 'Consume Pie Statistic',
-                subtext: 'Money',
+                subtext: subtitle || 'Money',
                 x:'center'
             },
 		    tooltip : {
@@ -140,8 +155,10 @@ function render(weekNames,rowDatas){
 		        formatter: "{a} <br/>{b} : {c} ({d}%)"
 		    },
 		    legend: {
-		        orient : 'vertical',
-		        x : 'left',
+		        type: 'scroll',
+		        orient: 'vertical',
+		        left: 'left',
+		        top: 'middle',
 		        data: weekNames
 		    },
 		    toolbox: {
@@ -167,10 +184,15 @@ function render(weekNames,rowDatas){
             },
 		    series : [
 		        {
-		            name:'Week',
+		            name:'Category',
 		            type:'pie',
-		            radius : '72%',
-		            center: ['50%', '50%'],
+		            selectedMode: 'single',
+		            minAngle: 3,
+		            avoidLabelOverlap: true,
+		            radius : ['45%', '72%'],
+		            center: ['55%', '55%'],
+		            label: { formatter: '{b}: {d}%' },
+		            labelLine: { length: 12, length2: 8 },
 		            data:rowDatas
 		        }
 		    ]

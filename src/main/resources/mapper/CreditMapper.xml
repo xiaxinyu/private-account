@@ -133,7 +133,7 @@
                 )
             </if>
             <if test="credit.weekName != null">
-                and (dayofweek(transaction_date)-1) = #{credit.weekName,jdbcType=VARCHAR}
+                and weekday(bookkeeping_date) = #{credit.weekName,jdbcType=VARCHAR}
             </if>
             <if test="credit.year != null">
                 and year(transaction_date) = #{credit.year,jdbcType=VARCHAR}
@@ -179,7 +179,7 @@
                 or transaction_desc like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%' )
             </if>
             <if test="credit.weekName != null">
-                and (dayofweek(transaction_date) - 1) = #{credit.weekName,jdbcType=VARCHAR}
+                and weekday(bookkeeping_date) = #{credit.weekName,jdbcType=VARCHAR}
             </if>
             <if test="credit.year != null">
                 and year(transaction_date) = #{credit.year,jdbcType=VARCHAR}
@@ -191,9 +191,8 @@
     </select>
 
     <select id="consumeReport" resultType="com.account.persist.model.KeyValue">
-        select round(balance_money) 'value',
-        case when (isnull(consume_name)=1 || length(trim(consume_name)) =0) then 'unkown' else consume_name end 'key'
-        from (select sum(balance_money) balance_money, consume_id, consume_name
+        select round(sum(balance_money)) as `value`,
+        case when (isnull(consume_name)=1 or length(trim(consume_name))=0) then 'unkown' else consume_name end as `key`
         from credit
         where 1 = 1 and consumption_type = 1
         <if test="credit != null">
@@ -217,13 +216,13 @@
                 or transaction_desc like '%'||#{credit.demoArea,jdbcType=VARCHAR}||'%' )
             </if>
         </if>
-        group by consume_id, consume_name) t
-        order by consume_id
+        group by case when (isnull(consume_name)=1 or length(trim(consume_name))=0) then 'unkown' else consume_name end
+        order by `key`
     </select>
 
     <select id="weekConsumeReport" resultType="com.account.persist.model.KeyValue">
-        select round(sum(balance_money)) 'value', transaction_date 'key' from (
-        select dayofweek(transaction_date)-1 transaction_date, balance_money
+        select round(sum(balance_money)) as `value`, wday as `key` from (
+        select weekday(bookkeeping_date) wday, balance_money
         from credit
         where consumption_type = 1
         <if test="credit != null">
@@ -248,8 +247,8 @@
             </if>
         </if>
         ) view1
-        group by transaction_date
-        order by transaction_date
+        group by wday
+        order by wday
     </select>
 
     <select id="monthConsumeReport" resultType="com.account.persist.model.KeyValue">

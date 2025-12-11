@@ -15,7 +15,7 @@
     	<script type="text/javascript"></script>
 </head>
 <body class="easyui-layout">
-	<div data-options="region:'north'" style="height: 32px">
+    <div data-options="region:'north'" style="height: 52px">
 		<div style="margin-top: 3px;">
 			<span class="item_intervel">
 	           	<label>Transaction date:</label> 
@@ -73,7 +73,7 @@ $(function(){
     $.parser.onComplete = function(){
         $('#main').height($('#chartArea').height()-80);
         statistic();
-        getCredits(1);
+        getCredits(0);
     };
 });
 
@@ -93,37 +93,58 @@ function getParams(){
 
 function statistic() {
 	var params = getParams();
-	credit.weekConsumeReport(params, show);
+	credit.weekConsumeReport(params, show, ajaxError);
 }
 </script>
 
 <script type="text/javascript">
+function weekName(n){
+    var arr=['星期一','星期二','星期三','星期四','星期五','星期六','星期日'];
+    var idx = parseInt(n);
+    if(isNaN(idx) || idx<0 || idx>6) return '';
+    return arr[idx];
+}
+
+function nameToIndex(name){
+    var map={'星期一':0,'星期二':1,'星期三':2,'星期四':3,'星期五':4,'星期六':5,'星期日':6};
+    return map[name];
+}
+
 function show(data){
-	if(data.returnCode == 'success'){
-		var json = null;
-		try{
-			json = $.parseJSON(data.returnMessage);
-		}catch(e){
-			json = null;
-			app.messager.show({title:'Fail', msg: 'Parse return data fail!'});
-			return;
-		}
-		if(json != null){
-			var rows = json;
-			var weekNames = new Array();
-			var rowDatas = new Array();
-			for (var i = 0; i < rows.length; i++) {
-				var row = rows[i];
-				var key = row.key;
-				var value = parseFloat(row.value);
-				weekNames.push(key);
-				rowDatas.push({name: key, value: value});
-			}
-			render(weekNames,rowDatas);
-		} else {
-			app.messager.show({title : 'Fail', msg : data.returnMessage});
-		}
-	}
+    if(data && (data.returnCode == 'success' || data.returnCode == 20000)){
+        var json = null;
+        try{
+            json = $.parseJSON(data.returnMessage);
+        }catch(e){
+            json = null;
+            app.messager.show({title:'Fail', msg: 'Parse return data fail!'});
+            return;
+        }
+        if(json != null){
+            var rows = json;
+            var weekNames = new Array();
+            var rowDatas = new Array();
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var key = parseInt(row.key);
+                var value = parseFloat(row.value);
+                var name = weekName(key);
+                weekNames.push(name);
+                rowDatas.push({name: name, value: value});
+            }
+            render(weekNames,rowDatas);
+        } else {
+            app.messager.show({title : 'Fail', msg : data.returnMessage});
+        }
+    } else {
+        var msg = data && data.returnMessage ? data.returnMessage : 'Request failed';
+        app.messager.show({title:'Fail', msg: msg});
+    }
+}
+
+function ajaxError(xhr){
+    var msg = (xhr && xhr.responseText) ? xhr.responseText : 'Network error';
+    app.messager.show({title:'Fail', msg: msg});
 }
 
 function render(weekNames,rowDatas){
@@ -179,7 +200,9 @@ function render(weekNames,rowDatas){
 		
         myChart.setOption(option);
         myChart.on('click', function (param) {
-            refreshCredits(param.name);
+            var idx = nameToIndex(param.name);
+            refreshCredits(idx);
+            $("#detailGridArea").panel({'title':'Detail - ' + param.name});
         });
 }
 
@@ -213,4 +236,4 @@ function refreshCredits(weekName){
 	$("#detailGridArea").panel({'title':'Detail - ' + weekName});
 }
 </script>
-</html
+</html>
