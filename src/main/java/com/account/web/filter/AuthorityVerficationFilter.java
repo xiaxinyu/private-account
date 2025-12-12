@@ -17,7 +17,7 @@ import com.account.core.tool.StringTool;
 public class AuthorityVerficationFilter implements Filter {
 	private String[] filters = null;
 	private String[] excludeUrls = null;
-	private String redirectUrl = "system/main.jsp";
+	private String redirectUrl = "/login.html";
 
 	public void destroy() {}
 

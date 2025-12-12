@@ -55,3 +55,29 @@ var app = {
 	       });
 		}
 }
+
+$(function(){
+    $(document).ajaxComplete(function(event, xhr){
+        try{
+            var ct = xhr.getResponseHeader ? xhr.getResponseHeader('Content-Type') : '';
+            var st = xhr.status;
+            var rt = xhr.responseText || '';
+            if(st === 401 || st === 403){
+                window.top.location.href = '/login.html';
+                return;
+            }
+            if((ct && ct.indexOf('text/html') >= 0) && (rt.indexOf('id="login-form"') >= 0)){
+                window.top.location.href = '/login.html';
+            }
+        }catch(e){}
+    });
+    $(document).ajaxError(function(event, xhr){
+        try{
+            var st = xhr.status;
+            var rt = xhr.responseText || '';
+            if(st === 401 || st === 403 || rt.indexOf('id="login-form"') >= 0){
+                window.top.location.href = '/login.html';
+            }
+        }catch(e){}
+    });
+});
