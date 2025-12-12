@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.account.persist.mapper.CreditMapper">
+<mapper namespace="com.account.infrastructure.mapper.CreditMapper">
 
     <insert id="addCreditList">
         insert into credit
@@ -48,7 +48,7 @@
         </foreach>
     </insert>
 
-    <update id="updateCredit" parameterType="com.account.persist.model.Credit">
+    <update id="updateCredit" parameterType="com.account.domain.model.Credit">
         update credit
         set version = version+1,
         <if test="updateUser != null">
@@ -77,7 +77,7 @@
         delete from credit where id = #{id,jdbcType=VARCHAR}
     </delete>
 
-    <resultMap type="com.account.persist.model.Credit" id="baseCreditResultMap">
+    <resultMap type="com.account.domain.model.Credit" id="baseCreditResultMap">
         <id column="id" property="id" jdbcType="VARCHAR"/>
         <result column="card_id" property="cardId" jdbcType="VARCHAR"/>
         <result column="bank_card_id" property="bankCardId" jdbcType="VARCHAR"/>
@@ -190,7 +190,7 @@
         </if>
     </select>
 
-    <select id="consumeReport" resultType="com.account.persist.model.KeyValue">
+    <select id="consumeReport" resultType="com.account.domain.model.KeyValue">
         select round(sum(balance_money)) as `value`,
         case when (isnull(consume_name)=1 or length(trim(consume_name))=0) then 'unkown' else consume_name end as `key`
         from credit
@@ -220,7 +220,7 @@
         order by `key`
     </select>
 
-    <select id="weekConsumeReport" resultType="com.account.persist.model.KeyValue">
+    <select id="weekConsumeReport" resultType="com.account.domain.model.KeyValue">
         select round(sum(balance_money)) as `value`, wday as `key` from (
         select weekday(bookkeeping_date) wday, balance_money
         from credit
@@ -251,7 +251,7 @@
         order by wday
     </select>
 
-    <select id="monthConsumeReport" resultType="com.account.persist.model.KeyValue">
+    <select id="monthConsumeReport" resultType="com.account.domain.model.KeyValue">
         select round(balance_money) 'value',
         case when cmonth = 1 then 'Janunary'
         when cmonth = 2 then 'February'

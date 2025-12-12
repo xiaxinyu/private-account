@@ -1,6 +1,6 @@
 package com.account.web.rest;
 
-import com.account.service.authentication.AuthenticationFacade;
+import com.account.application.authentication.AuthenticationFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,18 +10,18 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.account.core.exception.DateParseException;
-import com.account.core.tool.DateTool;
-import com.account.core.tool.StringTool;
-import com.account.persist.model.Credit;
-import com.account.persist.model.Page;
-import com.account.service.exception.AppServiceException;
-import com.account.service.face.ICreditService;
+import com.account.core.DateParseException;
+import com.account.core.DateTool;
+import com.account.core.StringTool;
+import com.account.domain.model.Credit;
+import com.account.domain.model.Page;
+import com.account.core.AppServiceException;
+import com.account.application.ICreditService;
 import com.account.web.rest.model.CollectionResult;
 import com.account.web.rest.model.CommonResult;
 import com.account.web.rest.model.CreditParam;
 import com.account.web.rest.model.ResultCode;
-import com.account.service.consume.ClassificationService;
+import com.account.application.consume.ClassificationService;
 
 @Controller
 public class CreditController {
@@ -133,7 +133,7 @@ public class CreditController {
             String narration = credit.getTransactionDesc();
             String cardTypeCode = credit.getCardTypeName();
             if(cardTypeCode != null){ cardTypeCode = cardTypeCode.trim().toLowerCase(); }
-            com.account.service.consume.ClassificationService.Result r = classificationService.classify(narration, null, cardTypeCode);
+            com.account.application.consume.ClassificationService.Result r = classificationService.classify(narration, null, cardTypeCode);
             if(r == null){
                 return new CommonResult(ResultCode.OPERATION_FAILED.getCodeValue(), "no_match");
             }

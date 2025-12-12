@@ -3,8 +3,8 @@ package com.account.domain.user;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.account.core.tool.StringTool;
-import com.account.persist.model.User;
+import com.account.core.StringTool;
+import com.account.domain.model.User;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,7 +16,10 @@ public class UserCollection {
 
     public UserCollection() {
         users = new ArrayList<>();
-        User user = User.builder().userName("summer").name("summer").password("summer").build();
+        User user = new User();
+        user.setUserName("summer");
+        user.setName("summer");
+        user.setPassword("summer");
         users.add(user);
     }
 

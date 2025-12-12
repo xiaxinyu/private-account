@@ -1,16 +1,17 @@
 package com.account.web.contoller;
 
 import com.account.domain.credit.bo.CreditUploadBO;
-import com.account.persist.model.CreditRecord;
-import com.account.service.authentication.AuthenticationFacade;
-import com.account.service.exception.AppException;
-import com.account.service.face.ICreditRecordService;
-import com.account.service.face.ICreditService;
-import com.account.service.card.BankCardService;
-import com.account.persist.model.BankCard;
-import lombok.extern.slf4j.Slf4j;
+import com.account.domain.model.CreditRecord;
+import com.account.application.authentication.AuthenticationFacade;
+import com.account.core.AppException;
+import com.account.application.ICreditRecordService;
+import com.account.application.ICreditService;
+import com.account.application.card.BankCardService;
+import com.account.domain.model.BankCard;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,9 +32,9 @@ import java.util.List;
  * @date 2020.4.21
  */
 @Controller
-@Slf4j
 @RequestMapping(value = "/v1/credit")
 public class CreditUploadController {
+    private static final Logger log = LoggerFactory.getLogger(CreditUploadController.class);
 
     @Autowired
     ICreditService creditService;
@@ -47,7 +48,7 @@ public class CreditUploadController {
     @Autowired
     BankCardService bankCardService;
     @Autowired
-    com.account.service.consume.ClassificationService classificationService;
+    com.account.application.consume.ClassificationService classificationService;
 
     @PostMapping("/upload.html")
     @Transactional(rollbackFor = Exception.class)
@@ -66,7 +67,7 @@ public class CreditUploadController {
             CreditRecord creditRecord = creditUploadBo.getCreditRecord();
 
             creditRecordService.addCreditRecord(creditRecord, userName);
-            List<com.account.persist.model.Credit> credits = com.account.service.importer.StatementImporterFactory
+            List<com.account.domain.model.Credit> credits = com.account.application.importer.StatementImporterFactory
                     .get(StringUtils.trimToEmpty(bankCode), StringUtils.trimToEmpty(cardTypeCode))
                     .parse(dataRows, bankCode, cardTypeCode, cardNo);
             BankCard bankCard = bankCardService.getByBankTypeNo(StringUtils.trimToEmpty(bankCode), StringUtils.trimToEmpty(cardTypeCode), StringUtils.trimToEmpty(cardNo));
@@ -75,12 +76,12 @@ public class CreditUploadController {
             }
             String bankCardId = bankCard == null ? null : bankCard.getId();
             String bankCardName = bankCard == null ? null : bankCard.getCardName();
-            for (com.account.persist.model.Credit c : credits) {
+            for (com.account.domain.model.Credit c : credits) {
                 if (StringUtils.isNotBlank(bankCardId)) {
                     c.setBankCardId(bankCardId);
                     c.setBankCardName(bankCardName);
                 }
-                com.account.service.consume.ClassificationService.Result r = classificationService.classify(c.getTransactionDesc(), bankCode, cardTypeCode);
+                com.account.application.consume.ClassificationService.Result r = classificationService.classify(c.getTransactionDesc(), bankCode, cardTypeCode);
                 if (r != null) {
                     c.setConsumeID(r.id);
                     c.setConsumeName(r.name);
@@ -139,7 +140,9 @@ public class CreditUploadController {
             creditRecord.setBillData(strData);
             creditRecord.setBillItemsNumber(counter);
 
-            CreditUploadBO creditUploadBo = CreditUploadBO.builder().dataRows(datRows).creditRecord(creditRecord).build();
+            CreditUploadBO creditUploadBo = new CreditUploadBO();
+            creditUploadBo.setDataRows(datRows);
+            creditUploadBo.setCreditRecord(creditRecord);
             return creditUploadBo;
         } catch (Exception e) {
             throw new AppException(e.getMessage());

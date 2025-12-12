@@ -1,13 +1,14 @@
 package com.account.web.contoller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@Slf4j
 public class IndexController {
+    private static final Logger log = LoggerFactory.getLogger(IndexController.class);
     @RequestMapping({"", "index.html"})
     public String index(ModelMap model) {
         log.info("************ Hello, Private Account ************");

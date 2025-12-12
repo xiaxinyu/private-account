@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.account.persist.mapper.AccumulationMapper">
+<mapper namespace="com.account.infrastructure.mapper.AccumulationMapper">
 	  
-	<insert id="addAccumulation" parameterType="com.account.persist.model.Accumulation">
-		insert into accumulation
+    <insert id="addAccumulation" parameterType="com.account.domain.model.Accumulation">
+        insert into accumulation
   		(version,createuser,updateuser,id,unit_no,unit_name,time,pay_base,personal_pay,unit_pay,total_pay,personal_reserved,demoarea)
 		values
   		(#{version,jdbcType=NUMERIC},
@@ -21,8 +21,8 @@
   		 #{demoArea,jdbcType=VARCHAR})		
 	</insert>
 	 
- 	<update id="updateAccumulation" parameterType="com.account.persist.model.Accumulation">
-		update accumulation
+    <update id="updateAccumulation" parameterType="com.account.domain.model.Accumulation">
+        update accumulation
 		set version = version+1,
 		<if test="updateuser != null">
 			updateuser = #{updateuser,jdbcType=VARCHAR},
@@ -62,8 +62,8 @@
     	delete from accumulation where id = #{id,jdbcType=VARCHAR} 
     </delete>
     
-    <resultMap type="com.account.persist.model.Accumulation" id="baseAccumulationsResultMap">
-    	<id column="id" property="id" jdbcType="VARCHAR"/>
+    <resultMap type="com.account.domain.model.Accumulation" id="baseAccumulationsResultMap">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
 	    <result column="unit_no" property="unitNo" jdbcType="VARCHAR"/>
 	    <result column="unit_name" property="unitName" jdbcType="VARCHAR"/>
 	    <result column="time" property="time" jdbcType="VARCHAR"/>

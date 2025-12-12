@@ -11,11 +11,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.account.core.tool.StringTool;
-import com.account.persist.model.Medical;
-import com.account.persist.model.Page;
-import com.account.service.exception.AppServiceException;
-import com.account.service.face.IMedicalService;
+import com.account.core.StringTool;
+import com.account.domain.model.Medical;
+import com.account.domain.model.Page;
+import com.account.core.AppServiceException;
+import com.account.application.IMedicalService;
 import com.account.web.rest.model.MedicalParam;
 import com.account.web.rest.model.ResultCode;
 

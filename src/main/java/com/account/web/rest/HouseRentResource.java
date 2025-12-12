@@ -7,10 +7,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.account.persist.model.HouseRent;
-import com.account.persist.model.Page;
-import com.account.service.exception.AppServiceException;
-import com.account.service.face.IHouseRentService;
+import com.account.domain.model.HouseRent;
+import com.account.domain.model.Page;
+import com.account.core.AppServiceException;
+import com.account.application.IHouseRentService;
 import com.account.web.rest.model.CollectionResult;
 import com.account.web.rest.model.HouseRentParam;
 

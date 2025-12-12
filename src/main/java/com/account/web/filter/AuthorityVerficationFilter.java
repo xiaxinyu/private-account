@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import com.account.core.tool.StringTool;
+import com.account.core.StringTool;
 
 public class AuthorityVerficationFilter implements Filter {
 	private String[] filters = null;

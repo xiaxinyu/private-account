@@ -1,6 +1,6 @@
 package com.account.web.rest;
 
-import com.account.service.consume.ConsumeCategoryService;
+import com.account.application.consume.ConsumeCategoryService;
 import com.account.web.rest.model.TreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

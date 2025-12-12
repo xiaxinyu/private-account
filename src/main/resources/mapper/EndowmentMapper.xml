@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.account.persist.mapper.EndowmentMapper">
+<mapper namespace="com.account.infrastructure.mapper.EndowmentMapper">
 	  
-	<insert id="addEndowment" parameterType="com.account.persist.model.Endowment">
-		insert into endowment
+    <insert id="addEndowment" parameterType="com.account.domain.model.Endowment">
+        insert into endowment
   		(version,createuser,updateuser,id,unit_no,unit_name,time,pay_base,personal_pay,unit_pay,total_pay,personal_reserved,demoarea)
 		values
   		(#{version,jdbcType=NUMERIC},
@@ -21,8 +21,8 @@
   		 #{demoArea,jdbcType=VARCHAR})		
 	</insert>
 	 
- 	<update id="updateEndowment" parameterType="com.account.persist.model.Endowment">
-		update endowment
+    <update id="updateEndowment" parameterType="com.account.domain.model.Endowment">
+        update endowment
 		set version = version+1,
 		<if test="updateuser != null">
 			updateuser = #{updateuser,jdbcType=VARCHAR},
@@ -62,8 +62,8 @@
     	delete from endowment where id = #{id,jdbcType=VARCHAR} 
     </delete>
     
-    <resultMap type="com.account.persist.model.Endowment" id="baseEndowmentsResultMap">
-    	<id column="id" property="id" jdbcType="VARCHAR"/>
+    <resultMap type="com.account.domain.model.Endowment" id="baseEndowmentsResultMap">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
 	    <result column="unit_no" property="unitNo" jdbcType="VARCHAR"/>
 	    <result column="unit_name" property="unitName" jdbcType="VARCHAR"/>
 	    <result column="time" property="time" jdbcType="VARCHAR"/>

@@ -1,14 +1,15 @@
 package com.account.web.rest;
 
-import com.account.persist.model.ConsumeCategory;
-import com.account.persist.model.Credit;
-import com.account.persist.mapper.CreditMapper;
-import com.account.service.consume.ConsumeCategoryService;
+import com.account.domain.model.ConsumeCategory;
+import com.account.domain.model.Credit;
+import com.account.infrastructure.mapper.CreditMapper;
+import com.account.application.consume.ConsumeCategoryService;
 import com.account.web.rest.model.CollectionResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +17,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/consume/categories")
-@Slf4j
 public class ConsumeCategoryAdminController {
+    private static final Logger log = LoggerFactory.getLogger(ConsumeCategoryAdminController.class);
     @Autowired
     private ConsumeCategoryService categoryService;
     @Autowired

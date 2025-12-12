@@ -1,9 +1,9 @@
 package com.account.web.rest;
 
-import com.account.persist.model.BankCard;
-import com.account.persist.model.KeyValue;
-import com.account.service.card.BankCardService;
-import com.account.service.card.CardService;
+import com.account.domain.model.BankCard;
+import com.account.domain.model.KeyValue;
+import com.account.application.card.BankCardService;
+import com.account.application.card.CardService;
 import com.account.web.rest.model.TreeNode;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;

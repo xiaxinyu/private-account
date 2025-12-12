@@ -1,11 +1,12 @@
 package com.account.web.rest;
 
-import com.account.persist.model.ConsumeRule;
-import com.account.service.consume.ClassificationService;
-import com.account.service.consume.ConsumeRuleService;
+import com.account.domain.model.ConsumeRule;
+import com.account.application.consume.ClassificationService;
+import com.account.application.consume.ConsumeRuleService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +14,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/consume/rules")
-@Slf4j
 public class ConsumeRuleController {
+    private static final Logger log = LoggerFactory.getLogger(ConsumeRuleController.class);
     @Autowired
     private ConsumeRuleService ruleService;
     @Autowired
@@ -38,7 +39,7 @@ public class ConsumeRuleController {
 
     @PostMapping
     public ConsumeRule add(@RequestBody ConsumeRule rule){
-        rule.setId(com.account.core.tool.StringTool.generateID());
+        rule.setId(com.account.core.StringTool.generateID());
         ruleService.save(rule);
         return rule;
     }
