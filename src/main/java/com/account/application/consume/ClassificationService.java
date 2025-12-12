@@ -25,8 +25,13 @@ public class ClassificationService {
 
     public void reload(){
         rules = ruleService.listActive();
+        categoryMap.clear();
         for (ConsumeCategory c : categoryService.listAll()){
-            categoryMap.put(c.getId(), c);
+            if (c == null) continue;
+            String idKey = c.getId();
+            String codeKey = c.getCode() == null ? null : c.getCode().trim();
+            if (idKey != null) { categoryMap.put(idKey, c); }
+            if (codeKey != null && !codeKey.isEmpty()) { categoryMap.put(codeKey, c); }
         }
         decisionTreeClassifier.reload();
     }
@@ -39,6 +44,40 @@ public class ClassificationService {
         res.id = r.id;
         res.name = r.name;
         return res;
+    }
+
+    public java.util.List<Result> classifyTopN(String narration, String bankCode, String cardTypeCode, int topN){
+        if (rules == null) reload();
+        java.util.List<DecisionTreeClassifier.Result> list = decisionTreeClassifier.classifyTopN(narration, bankCode, cardTypeCode, topN);
+        java.util.List<Result> out = new java.util.ArrayList<>();
+        if(list == null) list = java.util.Collections.emptyList();
+        for(DecisionTreeClassifier.Result r : list){
+            if(r == null) continue;
+            Result res = new Result();
+            res.id = r.id;
+            res.name = r.name;
+            out.add(res);
+        }
+        if(out.isEmpty()){
+            ConsumeCategory fallback = null;
+            ConsumeCategory c1 = categoryMap.get("OTHER-01");
+            ConsumeCategory c2 = categoryMap.get("OTHER");
+            fallback = c1 != null ? c1 : c2;
+            if(fallback == null){
+                for(ConsumeCategory c : categoryService.listAll()){
+                    if(c == null) continue;
+                    String code = c.getCode() == null ? null : c.getCode().trim();
+                    if("OTHER-01".equalsIgnoreCase(code) || "OTHER".equalsIgnoreCase(code)){ fallback = c; break; }
+                }
+            }
+            if(fallback != null){
+                Result fr = new Result();
+                fr.id = fallback.getCode();
+                fr.name = fallback.getName();
+                out.add(fr);
+            }
+        }
+        return out;
     }
 
     private boolean match(String text, String pattern, String type){

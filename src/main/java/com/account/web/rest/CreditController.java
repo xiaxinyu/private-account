@@ -1,6 +1,7 @@
 package com.account.web.rest;
 
 import com.account.application.authentication.AuthenticationFacade;
+import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,11 +134,12 @@ public class CreditController {
             String narration = credit.getTransactionDesc();
             String cardTypeCode = credit.getCardTypeName();
             if(cardTypeCode != null){ cardTypeCode = cardTypeCode.trim().toLowerCase(); }
-            com.account.application.consume.ClassificationService.Result r = classificationService.classify(narration, null, cardTypeCode);
-            if(r == null){
+            java.util.List<com.account.application.consume.ClassificationService.Result> rs = classificationService.classifyTopN(narration, null, cardTypeCode, 5);
+            if(rs == null || rs.isEmpty()){
                 return new CommonResult(ResultCode.OPERATION_FAILED.getCodeValue(), "no_match");
             }
-            return new CommonResult(ResultCode.OPERATION_SUCCEED.getCodeValue(), r.id + "|" + r.name);
+            String payload = JSON.toJSONString(rs);
+            return new CommonResult(ResultCode.OPERATION_SUCCEED.getCodeValue(), payload);
         }catch(Exception e){
             logger.error("classify credit failed. params[desc = " + credit.getTransactionDesc() + "]", e);
             return new CommonResult(ResultCode.OPERATION_FAILED.getCodeValue(), e.getMessage());

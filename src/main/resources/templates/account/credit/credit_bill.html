@@ -260,22 +260,55 @@ function cancelEdit() {
 function autoClassify(){
     var row = $(datagrid).datagrid('getSelected');
     if(!row){ app.messager.show({title:'Auto Classify', msg:'Please select one credit record!'}); return; }
+    var idx = $(datagrid).datagrid('getRowIndex', row);
+    try{ $(datagrid).datagrid('selectRow', idx); }catch(e){}
     var params = { transactionDesc: row.transactionDesc, cardTypeName: row.cardTypeName };
     credit.classify(params, function(res){
         if(res && res.returnCode === 'success'){
-            var s = res.returnMessage || '';
-            var p = s.split('|');
-            var code = (p[0]||'').trim();
-            var name = (p[1]||'').trim();
-            if(!code){ app.messager.show({title:'Auto Classify', msg:'No match'}); return; }
-            $.messager.confirm('Confirm', 'Auto classify as '+code+' '+name+' ?', function(r){
-                if(r){
-                    credit.updateCredit({id:row.id, consumeCode:code, consumeName:name}, function(dr){
-                        if(dr && dr.returnCode === 'success'){ $(datagrid).datagrid('reload'); }
-                        else { app.messager.show({title:'Fail', msg:(dr && dr.returnMessage) || 'Update failed'}); }
-                    }, function(e){ app.messager.show({title:'Error', msg: e.message || 'Network error'}); });
-                }
+            var arr = [];
+            try{ arr = JSON.parse(res.returnMessage || '[]'); }catch(ex){ arr = []; }
+            if(!arr || !arr.length){ arr = [{id:'OTHER-01', name:'无法归类的支出'}]; }
+            var dlgId = 'autoClassifyDlg_'+Math.floor(Math.random()*1000000);
+            var html = '<div id="'+dlgId+'" style="padding:12px;">'+
+                '<form style="max-height:280px;overflow:auto;margin-bottom:0;">';
+            for(var i=0;i<arr.length;i++){
+                var item = arr[i]||{};
+                var code = $.trim(item.id||'');
+                var name = $.trim(item.name||'');
+                var text = (code?code:'')+(name?('  '+name):'');
+                var checked = i===0? ' checked' : '';
+                html += '<label style="display:block;padding:8px 10px;border:1px solid #d0d0d0;border-radius:6px;margin-bottom:8px;background:#fafafa;">'
+                    + '<input type="radio" name="ac-radio" value="'+code+'" data-name="'+name+'"'+checked+' style="margin-right:8px;">'
+                    + text + '</label>';
+            }
+            html += '</form></div>';
+            var $dlg = $(html).appendTo('body');
+            $dlg.dialog({
+                title:'Top 5 Best Matches',
+                width:480,
+                modal:true,
+                buttons:[{
+                    text:'Apply',
+                    iconCls:'icon-ok',
+                    handler:function(){
+                        var $sel = $dlg.find('input[name="ac-radio"]:checked');
+                        var code = $sel.val()||'';
+                        var name = $sel.attr('data-name')||'';
+                        if(!code){ return; }
+                        credit.updateCredit({id:row.id, consumeCode:code, consumeName:name}, function(dr){
+                            if(dr && dr.returnCode === 'success'){ $(datagrid).datagrid('reload'); try{ $dlg.dialog('close'); }catch(e){} }
+                            else { app.messager.show({title:'Fail', msg:(dr && dr.returnMessage) || 'Update failed'}); }
+                        }, function(e){ app.messager.show({title:'Error', msg: e.message || 'Network error'}); });
+                    }
+                },{
+                    text:'Cancel',
+                    iconCls:'icon-cancel',
+                    handler:function(){ try{ $dlg.dialog('close'); }catch(e){} }
+                }],
+                onClose:function(){ try{ $dlg.dialog('destroy'); $dlg.remove(); }catch(e){} }
             });
+            try{ $(datagrid).datagrid('selectRow', idx); }catch(e){}
+            
         } else {
             app.messager.show({title:'Auto Classify', msg:(res && res.returnMessage) || 'No match'});
         }

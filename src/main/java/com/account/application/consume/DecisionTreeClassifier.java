@@ -30,7 +30,11 @@ public class DecisionTreeClassifier {
         regexEntries = new ArrayList<>();
         categoryMap.clear();
         for (ConsumeCategory c : categoryService.listAll()){
-            categoryMap.put(c.getId(), c);
+            if (c == null) continue;
+            String idKey = c.getId();
+            String codeKey = s(c.getCode());
+            if (idKey != null) { categoryMap.put(idKey, c); }
+            if (StringUtils.hasText(codeKey)) { categoryMap.put(codeKey, c); }
         }
         if (rules == null) return;
         for (ConsumeRule r : rules){
@@ -39,7 +43,7 @@ public class DecisionTreeClassifier {
             String type = s(r.getPatternType()).toLowerCase();
             String pat = s(r.getPattern());
             RuleEntry e = new RuleEntry();
-            e.categoryId = cat.getId();
+            e.categoryId = s(cat.getCode());
             e.categoryName = cat.getName();
             e.priority = r.getPriority() == null ? 0 : r.getPriority();
             e.type = type;
@@ -105,8 +109,9 @@ public class DecisionTreeClassifier {
         ConsumeCategory cat = categoryMap.get(bestCatId);
         if (cat == null) return null;
         Result r = new Result();
-        r.id = cat.getId();
+        r.id = cat.getCode();
         r.name = cat.getName();
+        r.priority = 0;
         return r;
     }
 
@@ -114,20 +119,24 @@ public class DecisionTreeClassifier {
         ConsumeCategory cat = categoryMap.get(e.categoryId);
         if (cat == null) return null;
         Result r = new Result();
-        r.id = cat.getId();
+        r.id = cat.getCode();
         r.name = cat.getName();
+        r.priority = e.priority;
         return r;
     }
 
     private boolean matchBankCard(RuleEntry e, String b, String c){
-        if (StringUtils.hasText(e.bankCode) && !e.bankCode.equalsIgnoreCase(b)) return false;
-        if (StringUtils.hasText(e.cardTypeCode) && !e.cardTypeCode.equalsIgnoreCase(c)) return false;
+        if (StringUtils.hasText(b) && StringUtils.hasText(e.bankCode) && !e.bankCode.equalsIgnoreCase(b)) return false;
+        if (StringUtils.hasText(c) && StringUtils.hasText(e.cardTypeCode) && !e.cardTypeCode.equalsIgnoreCase(c)) return false;
         return true;
     }
 
     private String normalize(String s){
         if (s == null) return null;
-        return s.replaceAll("\\s+"," ").toLowerCase();
+        String t = s.toLowerCase();
+        t = t.replaceAll("[^\\p{L}\\p{N}\\s]", " ");
+        t = t.replaceAll("\\s+"," ");
+        return t;
     }
 
     private String s(String v){ return v == null ? "" : v.trim(); }
@@ -150,6 +159,7 @@ public class DecisionTreeClassifier {
     public static class Result{
         public String id;
         public String name;
+        public int priority;
     }
 
     private static class RuleEntry{
@@ -161,5 +171,83 @@ public class DecisionTreeClassifier {
         String bankCode;
         String cardTypeCode;
         Pattern compiled;
+    }
+
+    public List<Result> classifyTopN(String narration, String bankCode, String cardTypeCode, int topN){
+        if (rules == null) reload();
+        String text = normalize(narration);
+        if (!StringUtils.hasText(text)) return java.util.Collections.emptyList();
+        String b = s(bankCode).toLowerCase();
+        String c = s(cardTypeCode).toLowerCase();
+
+        Map<String, Integer> aggScore = new HashMap<>();
+        Map<String, Integer> aggPriority = new HashMap<>();
+
+        List<RuleEntry> eqs = equalsIndex.get(text);
+        if (eqs != null && !eqs.isEmpty()){
+            for(RuleEntry e : eqs){
+                if(!matchBankCard(e,b,c)) continue;
+                int sc = scoreFor(e);
+                int ps = aggScore.getOrDefault(e.categoryId, 0);
+                int pp = aggPriority.getOrDefault(e.categoryId, Integer.MIN_VALUE);
+                aggScore.put(e.categoryId, Math.max(ps, sc));
+                aggPriority.put(e.categoryId, Math.max(pp, e.priority));
+            }
+        }
+
+        for (RuleEntry e : regexEntries){
+            if (!matchBankCard(e,b,c)) continue;
+            try{
+                if(e.compiled.matcher(text).find()){
+                    int sc = scoreFor(e);
+                    int ps = aggScore.getOrDefault(e.categoryId, 0);
+                    int pp = aggPriority.getOrDefault(e.categoryId, Integer.MIN_VALUE);
+                    aggScore.put(e.categoryId, Math.max(ps, sc));
+                    aggPriority.put(e.categoryId, Math.max(pp, e.priority));
+                }
+            }catch(Exception ignore){}
+        }
+
+        Set<String> seen = new HashSet<>();
+        for(Map.Entry<String,List<RuleEntry>> en : tokenIndex.entrySet()){
+            String token = en.getKey();
+            if(seen.contains(token)) continue;
+            if(text.contains(token)){
+                seen.add(token);
+                for(RuleEntry e : en.getValue()){
+                    if(!matchBankCard(e,b,c)) continue;
+                    int s = aggScore.getOrDefault(e.categoryId, 0);
+                    aggScore.put(e.categoryId, s + scoreFor(e));
+                    int pp = aggPriority.getOrDefault(e.categoryId, Integer.MIN_VALUE);
+                    aggPriority.put(e.categoryId, Math.max(pp, e.priority));
+                }
+            }
+        }
+
+        List<Result> results = new ArrayList<>();
+        for(String catId : aggScore.keySet()){
+            ConsumeCategory cat = categoryMap.get(catId);
+            if(cat == null) continue;
+            Result r = new Result();
+            r.id = cat.getCode();
+            r.name = cat.getName();
+            r.priority = aggPriority.getOrDefault(catId, 0);
+            results.add(r);
+        }
+
+        results.sort((a,bRes) -> {
+            int cp = Integer.compare(bRes.priority, a.priority);
+            if(cp != 0) return cp;
+            int as = aggScore.getOrDefault(a.id, 0);
+            int bs = aggScore.getOrDefault(bRes.id, 0);
+            int cs = Integer.compare(bs, as);
+            if(cs != 0) return cs;
+            return String.valueOf(a.name).compareToIgnoreCase(String.valueOf(bRes.name));
+        });
+
+        if (topN > 0 && results.size() > topN){
+            return new ArrayList<>(results.subList(0, topN));
+        }
+        return results;
     }
 }
