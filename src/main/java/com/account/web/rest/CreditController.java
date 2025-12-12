@@ -21,6 +21,7 @@ import com.account.web.rest.model.CollectionResult;
 import com.account.web.rest.model.CommonResult;
 import com.account.web.rest.model.CreditParam;
 import com.account.web.rest.model.ResultCode;
+import com.account.service.consume.ClassificationService;
 
 @Controller
 public class CreditController {
@@ -31,6 +32,9 @@ public class CreditController {
 
     @Autowired
     AuthenticationFacade authenticationFacade;
+
+    @Autowired
+    ClassificationService classificationService;
 
     @RequestMapping("/credit/getCredits")
     @ResponseBody
@@ -118,6 +122,24 @@ public class CreditController {
             return new CommonResult(ResultCode.OPERATION_SUCCEED.getCodeValue(), "操作成功.");
         } catch (AppServiceException e) {
             logger.error("delete credit failed. params[id = " + credit.getId() + ",consumptionType = " + credit.getConsumptionType() + "]", e);
+            return new CommonResult(ResultCode.OPERATION_FAILED.getCodeValue(), e.getMessage());
+        }
+    }
+
+    @RequestMapping("/credit/classify")
+    @ResponseBody
+    public CommonResult classifyCredit(Credit credit){
+        try{
+            String narration = credit.getTransactionDesc();
+            String cardTypeCode = credit.getCardTypeName();
+            if(cardTypeCode != null){ cardTypeCode = cardTypeCode.trim().toLowerCase(); }
+            com.account.service.consume.ClassificationService.Result r = classificationService.classify(narration, null, cardTypeCode);
+            if(r == null){
+                return new CommonResult(ResultCode.OPERATION_FAILED.getCodeValue(), "no_match");
+            }
+            return new CommonResult(ResultCode.OPERATION_SUCCEED.getCodeValue(), r.id + "|" + r.name);
+        }catch(Exception e){
+            logger.error("classify credit failed. params[desc = " + credit.getTransactionDesc() + "]", e);
             return new CommonResult(ResultCode.OPERATION_FAILED.getCodeValue(), e.getMessage());
         }
     }

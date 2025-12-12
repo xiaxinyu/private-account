@@ -52,6 +52,7 @@
         <span class="item_intervel">
 	              <a class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="searchCredits()">Search</a>
 	              <a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="">Export</a>
+                  <a class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'" onclick="autoClassify()">Auto Classify</a>
 	          </span>
     </div>
 </div>
@@ -254,6 +255,31 @@ function cancelEdit() {
 	for (var i = 0; i < rows.length; i++) {
 		$(datagrid).datagrid('cancelEdit', i);
 	}
+}
+
+function autoClassify(){
+    var row = $(datagrid).datagrid('getSelected');
+    if(!row){ app.messager.show({title:'Auto Classify', msg:'Please select one credit record!'}); return; }
+    var params = { transactionDesc: row.transactionDesc, cardTypeName: row.cardTypeName };
+    credit.classify(params, function(res){
+        if(res && res.returnCode === 'success'){
+            var s = res.returnMessage || '';
+            var p = s.split('|');
+            var code = (p[0]||'').trim();
+            var name = (p[1]||'').trim();
+            if(!code){ app.messager.show({title:'Auto Classify', msg:'No match'}); return; }
+            $.messager.confirm('Confirm', 'Auto classify as '+code+' '+name+' ?', function(r){
+                if(r){
+                    credit.updateCredit({id:row.id, consumeCode:code, consumeName:name}, function(dr){
+                        if(dr && dr.returnCode === 'success'){ $(datagrid).datagrid('reload'); }
+                        else { app.messager.show({title:'Fail', msg:(dr && dr.returnMessage) || 'Update failed'}); }
+                    }, function(e){ app.messager.show({title:'Error', msg: e.message || 'Network error'}); });
+                }
+            });
+        } else {
+            app.messager.show({title:'Auto Classify', msg:(res && res.returnMessage) || 'No match'});
+        }
+    }, function(e){ app.messager.show({title:'Error', msg: e.message || 'Network error'}); });
 }
 
 </script>

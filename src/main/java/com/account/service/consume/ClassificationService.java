@@ -17,6 +17,8 @@ public class ClassificationService {
     private ConsumeRuleService ruleService;
     @Autowired
     private ConsumeCategoryService categoryService;
+    @Autowired
+    private DecisionTreeClassifier decisionTreeClassifier;
 
     private volatile List<ConsumeRule> rules;
     private final Map<String, ConsumeCategory> categoryMap = new ConcurrentHashMap<>();
@@ -26,34 +28,16 @@ public class ClassificationService {
         for (ConsumeCategory c : categoryService.listAll()){
             categoryMap.put(c.getId(), c);
         }
+        decisionTreeClassifier.reload();
     }
 
     public Result classify(String narration, String bankCode, String cardTypeCode){
         if (rules == null) reload();
-        String text = normalize(narration);
-        if (!StringUtils.hasText(text)) return null;
-        int bestScore = Integer.MIN_VALUE;
-        ConsumeCategory bestCat = null;
-        for (ConsumeRule r : rules){
-            if (StringUtils.hasText(r.getBankCode())){
-                if (!r.getBankCode().equalsIgnoreCase(s(bankCode))) continue;
-            }
-            if (StringUtils.hasText(r.getCardTypeCode())){
-                if (!r.getCardTypeCode().equalsIgnoreCase(s(cardTypeCode))) continue;
-            }
-            if (!match(text, r.getPattern(), r.getPatternType())) continue;
-            ConsumeCategory cat = categoryMap.get(r.getCategoryId());
-            if (cat == null) continue;
-            int score = scoreFor(r);
-            if (score > bestScore){
-                bestScore = score;
-                bestCat = cat;
-            }
-        }
-        if (bestCat == null) return null;
+        DecisionTreeClassifier.Result r = decisionTreeClassifier.classify(narration, bankCode, cardTypeCode);
+        if (r == null) return null;
         Result res = new Result();
-        res.id = bestCat.getId();
-        res.name = bestCat.getName();
+        res.id = r.id;
+        res.name = r.name;
         return res;
     }
 

@@ -41,12 +41,23 @@ var credit = {
 	},
 	monthConsumeReport : function(params, sfn, efn){
 		$.ajax({
-		   type:"post",
-           url: "/credit-report/month-consume",
-           data:params,
-           dataType:'json',
-           success: sfn,
-           error: efn
-       });
-	}
+			   type:"post",
+	           url: "/credit-report/month-consume",
+	           data:params,
+	           dataType:'json',
+	           success: sfn,
+	           error: efn
+	       });
+		}
+		,
+		classify : function(params, sfn, efn){
+			$.ajax({
+			   type:"post",
+	           url: "/credit/classify",
+	           data:params,
+	           dataType:'json',
+	           success: sfn,
+	           error: efn
+	       });
+		}
 };
